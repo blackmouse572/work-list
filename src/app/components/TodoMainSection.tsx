@@ -4,9 +4,10 @@ import useAddTodo from "@/app/(main)/hooks/useAddTodo";
 import useDeleteTodo from "@/app/(main)/hooks/useDeleteTodo";
 import useGetTodo from "@/app/(main)/hooks/useGetTodo";
 import ActionToast from "@/app/components/ActionToast";
-import AddTodoPanel from "@/app/components/AddTodo";
+import AddTodoPanel, { AddTodoSchema } from "@/app/components/AddTodo";
 import Breadcumbs from "@/app/components/Breadcumbs";
 import useConfirm from "@/app/components/ConfirmDialog";
+import { toast } from "sonner";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -16,9 +17,11 @@ import {
 import { Icon } from "@/app/components/Icons";
 import TodoTable from "@/app/components/TodoTable";
 import { useTableControl } from "@/app/components/useTableControl";
-import { Input, Selection } from "@nextui-org/react";
+import { Button, Input, Selection } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
 import React, { useMemo } from "react";
+import useUpdateTodo from "../(main)/hooks/useUpdateTodo";
+import FilterTable from "./FilterTable";
 
 type TodoMainSectionProps = {
   workspaceId: string;
@@ -36,8 +39,22 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
   }, [selectedKeys]);
 
   const { mutate: addTodo } = useAddTodo(workspaceId);
+  const { mutate: updateTodo } = useUpdateTodo(workspaceId);
   const { mutateAsync: deleteTodo } = useDeleteTodo(workspaceId);
   const { refetch, data } = useGetTodo(workspaceId);
+
+  const onRefetch = () => {
+    toast.promise(refetch, {
+      loading: "Refreshing data...",
+      success: "Data refreshed successfully",
+      error: "Failed to refresh data",
+    });
+  };
+
+  const onCreate = () => {
+    setSelectedKeys(new Set());
+    setOpen(true);
+  };
 
   const [open, setOpen] = React.useState(false);
   const onDeleteTodos = async (selection: Selection) => {
@@ -52,8 +69,16 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
       return;
     } else {
       const ids = Array.from(selection);
-      const promies = ids.map((id) => deleteTodo(id.toString()));
-      Promise.all(promies);
+      const promises = ids.map((id) => deleteTodo(id.toString()));
+      const promise = Promise.all(promises).then((v) => {
+        setSelectedKeys(new Set());
+        return v;
+      });
+      toast.promise(promise, {
+        loading: "Deleting todo...",
+        success: (v) => `Deleted ${v.length} todos successfully`,
+        error: "Failed to delete todo",
+      });
     }
   };
   const editTodo = useMemo(() => {
@@ -64,8 +89,18 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
   const onSearchChange = (value: string) => {
     setFilterValue(value);
   };
+  const onSubmitTodo = (todo: AddTodoSchema) => {
+    if (editTodo) {
+      updateTodo({
+        ...todo,
+        id: editTodo.id,
+      });
+    } else {
+      addTodo(todo);
+    }
+  };
   return (
-    <div className="pt-2 max-h-screen min-w-[300px] overflow-auto space-y-4 relative">
+    <div className="pt-2 h-screen min-w-[300px] overflow-auto space-y-4 relative">
       <Breadcumbs
         className="px-4"
         items={[
@@ -102,31 +137,47 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
               onClear={() => onSearchChange("")}
               onValueChange={onSearchChange}
             />
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-1 justify-end items-center">
+              <FilterTable />
               <AddTodoPanel
-                onSubmit={addTodo}
+                onSubmit={onSubmitTodo}
                 open={open}
                 setOpen={setOpen}
                 defaultValues={editTodo}
-              />
+                trigger={
+                  <Button
+                    endContent={<Icon name="tabler/plus-outline" />}
+                    className="min-w-max"
+                    size="sm"
+                    onClick={onCreate}
+                  >
+                    Add New
+                  </Button>
+                }
+              ></AddTodoPanel>
             </div>
           </div>
         </div>
       </nav>
       <ContextMenu>
         <ContextMenuTrigger>
-          <TodoTable workspaceId={workspaceId} />
+          <TodoTable
+            workspaceId={workspaceId}
+            onCreateTask={() => setOpen(true)}
+          />
         </ContextMenuTrigger>
         <ContextMenuContent>
-          <ContextMenuItem onClick={() => refetch()}>
+          <ContextMenuItem onClick={() => onRefetch()}>
             Refresh Data
           </ContextMenuItem>
-          <ContextMenuItem
-            onClick={() => setOpen(true)}
-            endContent={<Icon name="tabler/pencil-outline" size="sm" />}
-          >
-            Edit
-          </ContextMenuItem>
+          {editTodo && (
+            <ContextMenuItem
+              onClick={() => setOpen(true)}
+              endContent={<Icon name="tabler/pencil-outline" size="sm" />}
+            >
+              Edit
+            </ContextMenuItem>
+          )}
           {editTodo && (
             <ContextMenuItem
               onClick={() => {

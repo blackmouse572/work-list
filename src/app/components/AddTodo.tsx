@@ -7,23 +7,35 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from '@/app/components/Drawer';
-import { Form, FormField, FormItem } from '@/app/components/Form';
-import { Icon } from '@/app/components/Icons';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { parseDate } from '@internationalized/date';
-import { Button } from '@nextui-org/button';
-import { DateInput, Input, Snippet, Textarea } from '@nextui-org/react';
-import { formatDate } from 'date-fns';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+} from "@/app/components/Drawer";
+import { Form, FormField, FormItem } from "@/app/components/Form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { parseDate } from "@internationalized/date";
+import { Button } from "@nextui-org/button";
+import {
+  DateInput,
+  Input,
+  Snippet,
+  Tab,
+  Tabs,
+  Textarea,
+} from "@nextui-org/react";
+import { formatDate } from "date-fns";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import TagsField from "./TagField";
+import { useEffect } from "react";
+import { Icon } from "./Icons";
+import { priorityColorMap, priorityIconMap } from "@/misc/user.mixin";
 
 export const AddTodoSchema = z.object({
   id: z.string().optional(),
   title: z.string(),
   description: z.string().optional(),
-  dueDate: z.date().optional(),
-  tag: z.string(),
+  dueDate: z.coerce.date().optional(),
+  tags: z.array(z.string()),
+  status: z.enum(["todo", "in-progress", "done"]).default("todo"),
+  priority: z.enum(["low", "medium", "high"]).default("low"),
 });
 export type AddTodoSchema = z.infer<typeof AddTodoSchema>;
 
@@ -32,15 +44,23 @@ type AddTodoPanelProps = {
   defaultValues?: Partial<z.infer<typeof AddTodoSchema>>;
   open?: boolean;
   setOpen?: (open: boolean) => void;
+  trigger?: React.ReactNode;
 };
 
-function AddTodoPanel({ onSubmit, defaultValues, open, setOpen }: AddTodoPanelProps) {
+function AddTodoPanel({
+  onSubmit,
+  defaultValues,
+  open,
+  setOpen,
+  trigger,
+}: AddTodoPanelProps) {
   const form = useForm<z.infer<typeof AddTodoSchema>>({
     resolver: zodResolver(AddTodoSchema),
     defaultValues,
   });
-  console.log({ defaultValues });
-
+  useEffect(() => {
+    form.reset(defaultValues);
+  }, [defaultValues, form]);
   const { control } = form;
   const handleSubmit = (data: AddTodoSchema) => {
     onSubmit(data);
@@ -60,11 +80,11 @@ function AddTodoPanel({ onSubmit, defaultValues, open, setOpen }: AddTodoPanelPr
               className="w-full"
               codeString={`/todo/${defaultValues.id}`}
               copyButtonProps={{
-                size: 'sm',
+                size: "sm",
               }}
               classNames={{
-                base: 'border-none',
-                copyButton: 'min-w-5 h-5 w-5',
+                base: "border-none",
+                copyButton: "min-w-5 h-5 w-5",
               }}
             >
               <span>ID: {defaultValues?.id}</span>
@@ -83,18 +103,16 @@ function AddTodoPanel({ onSubmit, defaultValues, open, setOpen }: AddTodoPanelPr
 
   return (
     <Drawer open={open} onClose={() => setOpen?.(false)} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
-        <Button endContent={<Icon name="tabler/plus-outline" />} size="sm">
-          Add New
-        </Button>
-      </DrawerTrigger>
+      <DrawerTrigger asChild>{trigger}</DrawerTrigger>
       <DrawerContent>
         {renderHeaderByEdit()}
         <Form {...form}>
           <form
             id="todo"
-            onSubmit={form.handleSubmit(handleSubmit, (errors) => console.error(errors))}
-            className="px-4 space-y-4 mt-6"
+            onSubmit={form.handleSubmit(handleSubmit, (errors) =>
+              console.error(errors)
+            )}
+            className="px-4 space-y-6 mt-6"
           >
             <FormField
               control={control}
@@ -135,8 +153,8 @@ function AddTodoPanel({ onSubmit, defaultValues, open, setOpen }: AddTodoPanelPr
               control={control}
               name="dueDate"
               render={({ field: { value, ...field }, fieldState }) => {
-                const date = value && parseDate(formatDate(value, 'yyyy-MM-dd'));
-                console.log(date);
+                const date =
+                  value && parseDate(formatDate(value, "yyyy-MM-dd"));
                 return (
                   <FormItem>
                     <DateInput
@@ -148,43 +166,126 @@ function AddTodoPanel({ onSubmit, defaultValues, open, setOpen }: AddTodoPanelPr
                       {...field}
                       isInvalid={!!fieldState.error}
                       defaultValue={
-                        defaultValues?.dueDate && parseDate(formatDate(defaultValues.dueDate, 'yyyy-MM-dd'))
+                        defaultValues?.dueDate &&
+                        parseDate(
+                          formatDate(defaultValues.dueDate, "yyyy-MM-dd")
+                        )
                       }
                       onChange={(date) =>
-                        date && field.onChange(new Date(date.year, date.month - 1, date.day, 0, 0, 0, 0))
+                        date &&
+                        field.onChange(
+                          new Date(
+                            date.year,
+                            date.month - 1,
+                            date.day,
+                            0,
+                            0,
+                            0,
+                            0
+                          )
+                        )
                       }
                     />
                   </FormItem>
                 );
               }}
             />
+            <TagsField />
             <FormField
               control={control}
-              name="tag"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <Input
-                    isRequired
-                    isInvalid={!!fieldState.error}
-                    required
+              name="status"
+              render={({ field: { value, ...field } }) => {
+                return (
+                  <Tabs
+                    color={
+                      value === "todo"
+                        ? "default"
+                        : value === "in-progress"
+                        ? "primary"
+                        : "success"
+                    }
                     size="sm"
-                    labelPlacement="outside"
-                    label="Tag"
-                    errorMessage={fieldState.error?.message}
-                    {...field}
-                  />
-                </FormItem>
-              )}
+                    classNames={{
+                      base: "w-full",
+                      tabList: "w-full",
+                    }}
+                    selectedKey={value}
+                    onSelectionChange={(e) => field.onChange(e)}
+                  >
+                    <Tab key="todo" title="Todo" />
+                    <Tab key="in-progress" title="In progress" />
+                    <Tab key="done" title="Done" />
+                  </Tabs>
+                );
+              }}
+            />
+            <FormField
+              control={control}
+              name="priority"
+              render={({ field: { value, ...field } }) => {
+                return (
+                  <Tabs
+                    size="sm"
+                    classNames={{
+                      base: "w-full",
+                      tabList: "w-full",
+                    }}
+                    selectedKey={value}
+                    onSelectionChange={(e) => field.onChange(e)}
+                  >
+                    <Tab
+                      key="low"
+                      title={
+                        <div className="flex items-center space-x-1 gap-1">
+                          <Icon
+                            color={priorityColorMap["low"]}
+                            name={priorityIconMap["low"]}
+                          />
+                          Low
+                        </div>
+                      }
+                    />
+                    <Tab
+                      key="medium"
+                      title={
+                        <div className="flex items-center space-x-1 gap-1">
+                          <Icon
+                            color={priorityColorMap["medium"]}
+                            name={priorityIconMap["medium"]}
+                          />
+                          Medium
+                        </div>
+                      }
+                    />
+                    <Tab
+                      key="high"
+                      title={
+                        <div className="flex items-center space-x-1 gap-1">
+                          <Icon
+                            color={priorityColorMap["high"]}
+                            name={priorityIconMap["high"]}
+                          />
+                          High
+                        </div>
+                      }
+                    />
+                  </Tabs>
+                );
+              }}
             />
           </form>
         </Form>
-        <DrawerFooter className="justify-end">
-          <Button form="todo" type="submit" color="primary">
-            {isEdit ? 'Save' : 'Add'}
-          </Button>
-          <DrawerClose asChild>
-            <Button variant="bordered">Cancel</Button>
-          </DrawerClose>
+        <DrawerFooter className="justify-between">
+          <div className="space-x-2">
+            <DrawerClose asChild>
+              <Button variant="bordered" type="reset">
+                Cancel
+              </Button>
+            </DrawerClose>
+            <Button form="todo" type="submit" color="primary">
+              {isEdit ? "Save" : "Add"}
+            </Button>
+          </div>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

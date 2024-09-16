@@ -15,21 +15,32 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/react";
-import React from "react";
+import React, { useMemo } from "react";
+import EmptyToDoTable from "./EmptyTodoTable";
+import { statusColorMap } from "@/misc/user.mixin";
+import { useSearchParams } from "next/navigation";
+import { FilterTodoTableSchema } from "./FilterTable";
 
 type ToDoTableProps = {
   workspaceId: string;
+  onCreateTask: () => void;
 };
-const statusColorMap: Record<
-  Todo["status"],
-  "primary" | "success" | "warning" | "danger"
-> = {
-  done: "success",
-  "in-progress": "warning",
-  todo: "primary",
-};
-function TodoTable({ workspaceId }: ToDoTableProps) {
-  const { data: items, isLoading } = useGetTodo(workspaceId);
+function TodoTable({ workspaceId, onCreateTask }: ToDoTableProps) {
+  const searchParams = useSearchParams();
+  const filter = useMemo(() => {
+    const status = searchParams.get("status") ?? "all";
+    const priority = searchParams.get("priority") ?? "all";
+    const dueDateStart = searchParams.get("dueDateStart");
+    const dueDateEnd = searchParams.get("dueDateEnd");
+
+    return FilterTodoTableSchema.parse({
+      status,
+      priority,
+      dueDateStart: dueDateStart ? new Date(dueDateStart) : undefined,
+      dueDateEnd: dueDateEnd ? new Date(dueDateEnd) : undefined,
+    });
+  }, [searchParams]);
+  const { data: items, isLoading } = useGetTodo(workspaceId, filter);
   const {
     sortDescriptor,
     addToSelection,
@@ -70,7 +81,6 @@ function TodoTable({ workspaceId }: ToDoTableProps) {
   );
   const renderCell = React.useCallback((item: Todo, columnKey: keyof Todo) => {
     const cellValue = item[columnKey];
-
     switch (columnKey) {
       case "id": {
         return (
@@ -192,13 +202,18 @@ function TodoTable({ workspaceId }: ToDoTableProps) {
     >
       <TableHeader columns={headerColumns}>
         {({ uid, ...column }) => (
-          <TableColumn key={uid} allowsSorting={column.sortable} {...column}>
+          <TableColumn
+            key={uid}
+            allowsSorting={column.sortable}
+            allowsResizing
+            {...column}
+          >
             {column.name}
           </TableColumn>
         )}
       </TableHeader>
       <TableBody
-        emptyContent={"No users found"}
+        emptyContent={<EmptyToDoTable onCreateTask={onCreateTask} />}
         items={sortedItems}
         isLoading={isLoading}
         loadingContent={<LoadingTable />}

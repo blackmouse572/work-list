@@ -50,13 +50,12 @@ const MENU_ITEMS: MenuItem[] = [
 ];
 function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
   const [selectedWorkspace, setSelectedWorkspace] = React.useState<Workspace>();
-  const [isShrink, setIsShrink] = React.useState(false);
+  const [isShrink, _] = React.useState(false);
   const [isAddWorkspace, setIsAddWorkspace] = React.useState(false);
 
   const { data, isLoading } = useGetWorkspaces();
   const path = usePathname();
 
-  console.log({ workspaceId });
   const onSelectionChanges = (e: SharedSelection) => {
     const workspace = data?.find((w) => w.id === e.anchorKey);
     if (!workspace || workspace.id === "added") return;
@@ -67,16 +66,20 @@ function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
   const activeItem =
     MENU_ITEMS.find((item) => item.href === path) || MENU_ITEMS[0];
   const renderItem = (item: MenuItem) => (
-    <ListboxItem
+    <Button
       key={item.href}
       href={item.href}
-      hideSelectedIcon
+      disableRipple
       startContent={<Icon name={item.icon} />}
-      data-hover={item.href === activeItem?.href ? "true" : undefined}
-      className="data-[selected=true]:transition-colors data-[selected=true]:bg-default/20 data-[selected=true]:text-default-foreground mt-2"
+      color={activeItem.href === item.href ? "primary" : "default"}
+      variant={activeItem.href === item.href ? "flat" : "light"}
+      data-selected={activeItem.href === item.href}
+      isIconOnly={isShrink}
     >
-      <span className={isShrink ? "hidden" : "block"}>{item.label}</span>
-    </ListboxItem>
+      <span className={cn(isShrink ? "hidden" : "block", "w-full text-start")}>
+        {item.label}
+      </span>
+    </Button>
   );
   return (
     <aside
@@ -133,18 +136,10 @@ function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
         placeholder="Search"
         size="sm"
       />
-      <Listbox
-        selectedKeys={activeItem?.href}
-        disallowEmptySelection
-        selectionMode="single"
-      >
-        <ListboxSection title="Menu">
-          {MENU_ITEMS.map((item) => renderItem(item))}
-        </ListboxSection>
-      </Listbox>
-      <Button onClick={() => setIsShrink((p) => !p)}>
-        {isShrink ? "Expand" : "Shrink"}
-      </Button>
+      <div className="flex flex-col gap-2">
+        <h4 className="text-sm text-default-500">Main</h4>
+        {MENU_ITEMS.map((item) => renderItem(item))}
+      </div>
     </aside>
   );
 }
