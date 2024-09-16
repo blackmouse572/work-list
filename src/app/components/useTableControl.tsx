@@ -1,8 +1,8 @@
-'use client';
-import { Selection, SortDescriptor } from '@nextui-org/table';
-import { enableMapSet } from 'immer';
-import { create } from 'zustand';
-import { immer } from 'zustand/middleware/immer';
+"use client";
+import { Selection, SortDescriptor } from "@nextui-org/table";
+import { enableMapSet } from "immer";
+import { create } from "zustand";
+import { immer } from "zustand/middleware/immer";
 
 enableMapSet();
 
@@ -23,18 +23,20 @@ export type TableControlAction = {
 
 const initialState: TableControlState = {
   selectedKeys: new Set(),
-  sortDescriptor: { column: 'id', direction: 'ascending' },
-  filterValue: '',
+  sortDescriptor: { column: "id", direction: "ascending" },
+  filterValue: "",
 };
 
 export const useTableControl = create<TableControlState & TableControlAction>()(
-  immer((set, get) => ({
+  immer((set) => ({
     ...initialState,
-    setSelectedKeys: (selection) => set((state) => void (state.selectedKeys = selection)),
-    setSortDescriptor: (sortDescriptor) => set((state) => void (state.sortDescriptor = sortDescriptor)),
+    setSelectedKeys: (selection) =>
+      set((state) => void (state.selectedKeys = selection)),
+    setSortDescriptor: (sortDescriptor) =>
+      set((state) => void (state.sortDescriptor = sortDescriptor)),
     setFilterValue: (value) => set((state) => void (state.filterValue = value)),
     clearSelection: () => set((state) => void (state.selectedKeys = new Set())),
-    clearFilter: () => set((state) => void (state.filterValue = '')),
+    clearFilter: () => set((state) => void (state.filterValue = "")),
     addToSelection: (key) =>
       set((state) => {
         state.selectedKeys = new Set([key]);

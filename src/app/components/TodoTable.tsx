@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import useGetTodo from '@/app/(main)/hooks/useGetTodo';
-import LoadingTable from '@/app/components/LoadingTable';
-import { useTableControl } from '@/app/components/useTableControl';
-import { getDueDateLabel } from '@/misc/table.mixin';
-import { Todo } from '@models/todo';
+import useGetTodo from "@/app/(main)/hooks/useGetTodo";
+import LoadingTable from "@/app/components/LoadingTable";
+import { useTableControl } from "@/app/components/useTableControl";
+import { getDueDateLabel } from "@/misc/table.mixin";
+import { Todo } from "@models/todo";
 import {
   Chip,
   Table,
@@ -14,28 +14,38 @@ import {
   TableColumnProps,
   TableHeader,
   TableRow,
-} from '@nextui-org/react';
-import React from 'react';
+} from "@nextui-org/react";
+import React from "react";
 
 type ToDoTableProps = {
   workspaceId: string;
 };
-const statusColorMap: Record<Todo['status'], 'primary' | 'success' | 'warning' | 'danger'> = {
-  done: 'success',
-  'in-progress': 'warning',
-  todo: 'primary',
+const statusColorMap: Record<
+  Todo["status"],
+  "primary" | "success" | "warning" | "danger"
+> = {
+  done: "success",
+  "in-progress": "warning",
+  todo: "primary",
 };
 function TodoTable({ workspaceId }: ToDoTableProps) {
   const { data: items, isLoading } = useGetTodo(workspaceId);
-  const { sortDescriptor, addToSelection, selectedKeys, setSortDescriptor, setSelectedKeys } = useTableControl();
+  const {
+    sortDescriptor,
+    addToSelection,
+    selectedKeys,
+    setSortDescriptor,
+    setSelectedKeys,
+  } = useTableControl();
   const sortedItems = React.useMemo(() => {
     if (!items) return [];
     return [...items].sort((a, b) => {
-      const first = a[sortDescriptor.column!.toString()];
-      const second = b[sortDescriptor.column!.toString()];
+      const first = a[sortDescriptor.column as keyof Todo];
+      const second = b[sortDescriptor.column as keyof Todo];
+      if (!first || !second) return 0;
       const cmp = first < second ? -1 : first > second ? 1 : 0;
 
-      return sortDescriptor.direction === 'descending' ? -cmp : cmp;
+      return sortDescriptor.direction === "descending" ? -cmp : cmp;
     });
   }, [sortDescriptor, items]);
   const headerColumns = React.useMemo<
@@ -43,18 +53,18 @@ function TodoTable({ workspaceId }: ToDoTableProps) {
       uid: keyof Todo;
       name: string;
       sortable?: boolean;
-      width?: TableColumnProps<Todo>['width'];
-      minWidth?: TableColumnProps<Todo>['minWidth'];
-      maxWidth?: TableColumnProps<Todo>['maxWidth'];
+      width?: TableColumnProps<Todo>["width"];
+      minWidth?: TableColumnProps<Todo>["minWidth"];
+      maxWidth?: TableColumnProps<Todo>["maxWidth"];
     }[]
   >(
     () => [
-      { uid: 'id', name: '', sortable: false, width: 100 },
-      { uid: 'title', name: 'Title', sortable: true },
-      { uid: 'status', name: 'Status', sortable: true, width: 120 },
-      { uid: 'dueDate', name: 'Due Date', sortable: true },
-      { uid: 'subTasks', name: 'Sub Tasks', sortable: false },
-      { uid: 'tags', name: 'Tags', sortable: false },
+      { uid: "id", name: "", sortable: false, width: 100 },
+      { uid: "title", name: "Title", sortable: true },
+      { uid: "status", name: "Status", sortable: true, width: 120 },
+      { uid: "dueDate", name: "Due Date", sortable: true },
+      { uid: "subTasks", name: "Sub Tasks", sortable: false },
+      { uid: "tags", name: "Tags", sortable: false },
     ],
     []
   );
@@ -62,12 +72,14 @@ function TodoTable({ workspaceId }: ToDoTableProps) {
     const cellValue = item[columnKey];
 
     switch (columnKey) {
-      case 'id': {
-        return <span className="text-default-300">[{item.id.toUpperCase()}]</span>;
+      case "id": {
+        return (
+          <span className="text-default-300">[{item.id.toUpperCase()}]</span>
+        );
       }
-      case 'title':
+      case "title":
         return <span>{item.title}</span>;
-      case 'status':
+      case "status":
         return (
           <Chip
             className="capitalize border-none gap-1 text-default-600"
@@ -78,11 +90,11 @@ function TodoTable({ workspaceId }: ToDoTableProps) {
             {item.status}
           </Chip>
         );
-      case 'dueDate':
+      case "dueDate":
         return <span> {getDueDateLabel(item)} </span>;
-      case 'subTasks':
+      case "subTasks":
         return <span> {item.subTasks.length} </span>;
-      case 'tags':
+      case "tags":
         // fist 3 tags
         const tags = item.tags.slice(0, 1);
         return (
@@ -135,19 +147,19 @@ function TodoTable({ workspaceId }: ToDoTableProps) {
   }, []);
   const classNames = React.useMemo(
     () => ({
-      wrapper: ['max-h-[382px]', 'max-w-3xl'],
-      th: ['bg-transparent', 'text-default-500', 'border-b', 'border-divider'],
+      wrapper: ["max-h-[382px]", "max-w-3xl"],
+      th: ["bg-transparent", "text-default-500", "border-b", "border-divider"],
       td: [
         // changing the rows border radius
         // first
-        'group-data-[first=true]:first:before:rounded-none',
-        'group-data-[first=true]:last:before:rounded-none',
+        "group-data-[first=true]:first:before:rounded-none",
+        "group-data-[first=true]:last:before:rounded-none",
         // middle
-        'group-data-[middle=true]:before:rounded-none',
+        "group-data-[middle=true]:before:rounded-none",
         // last
-        'group-data-[last=true]:first:before:rounded-none',
-        'group-data-[last=true]:last:before:rounded-none',
-        'text-xs',
+        "group-data-[last=true]:first:before:rounded-none",
+        "group-data-[last=true]:last:before:rounded-none",
+        "text-xs",
       ],
     }),
     []
@@ -162,7 +174,7 @@ function TodoTable({ workspaceId }: ToDoTableProps) {
       bottomContentPlacement="outside"
       checkboxesProps={{
         classNames: {
-          wrapper: 'after:bg-foreground after:text-background text-background',
+          wrapper: "after:bg-foreground after:text-background text-background",
         },
       }}
       isVirtualized
@@ -186,7 +198,7 @@ function TodoTable({ workspaceId }: ToDoTableProps) {
         )}
       </TableHeader>
       <TableBody
-        emptyContent={'No users found'}
+        emptyContent={"No users found"}
         items={sortedItems}
         isLoading={isLoading}
         loadingContent={<LoadingTable />}
@@ -200,7 +212,9 @@ function TodoTable({ workspaceId }: ToDoTableProps) {
               }
             }}
           >
-            {(columnKey) => <TableCell>{renderCell(item, columnKey as any)}</TableCell>}
+            {(columnKey) => (
+              <TableCell>{renderCell(item, columnKey as keyof Todo)}</TableCell>
+            )}
           </TableRow>
         )}
       </TableBody>

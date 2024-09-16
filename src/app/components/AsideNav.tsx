@@ -1,11 +1,11 @@
-'use client';
-import workspaceService from '@/app/(main)/actions/workspace.local.action';
-import useGetWorkspaces from '@/app/(main)/hooks/useGetWorkspace';
-import { DEFAULT_WORKSPACE_ID } from '@/app/(main)/todo/constant';
-import { Icon, IconName } from '@/app/components/Icons';
-import NewWorkspace from '@/app/components/NewWorkspace';
-import { Workspace } from '@models/workspace';
-import { Avatar } from '@nextui-org/avatar';
+"use client";
+import workspaceService from "@/app/(main)/actions/workspace.local.action";
+import useGetWorkspaces from "@/app/(main)/hooks/useGetWorkspace";
+import { DEFAULT_WORKSPACE_ID } from "@/app/(main)/todo/constant";
+import { Icon, IconName } from "@/app/components/Icons";
+import NewWorkspace from "@/app/components/NewWorkspace";
+import { Workspace } from "@models/workspace";
+import { Avatar } from "@nextui-org/avatar";
 import {
   Button,
   cn,
@@ -17,9 +17,9 @@ import {
   Select,
   SelectItem,
   SharedSelection,
-} from '@nextui-org/react';
-import { usePathname, useRouter } from 'next/navigation';
-import React from 'react';
+} from "@nextui-org/react";
+import { usePathname } from "next/navigation";
+import React from "react";
 
 type AsideNavProps = React.HTMLAttributes<HTMLElement> & {
   workspaceId?: string;
@@ -33,19 +33,19 @@ type MenuItem = {
 };
 const MENU_ITEMS: MenuItem[] = [
   {
-    icon: 'tabler/grid-4x4-outline',
-    label: 'Task',
-    href: '/',
+    icon: "tabler/grid-4x4-outline",
+    label: "Task",
+    href: "/",
   },
   {
-    icon: 'tabler/trash-outline',
-    label: 'Trash',
-    href: '/trash',
+    icon: "tabler/trash-outline",
+    label: "Trash",
+    href: "/trash",
   },
   {
-    icon: 'tabler/settings-2-outline',
-    label: 'Settings',
-    href: '/settings',
+    icon: "tabler/settings-2-outline",
+    label: "Settings",
+    href: "/settings",
   },
 ];
 function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
@@ -55,31 +55,34 @@ function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
 
   const { data, isLoading } = useGetWorkspaces();
   const path = usePathname();
-  const router = useRouter();
 
   console.log({ workspaceId });
   const onSelectionChanges = (e: SharedSelection) => {
     const workspace = data?.find((w) => w.id === e.anchorKey);
-    if (!workspace || workspace.id === 'added') return;
+    if (!workspace || workspace.id === "added") return;
     console.log({ workspace });
     setSelectedWorkspace(workspace);
     workspaceService.selectWorkspace(workspace.id);
   };
-  const activeItem = MENU_ITEMS.find((item) => item.href === path) || MENU_ITEMS[0];
+  const activeItem =
+    MENU_ITEMS.find((item) => item.href === path) || MENU_ITEMS[0];
   const renderItem = (item: MenuItem) => (
     <ListboxItem
       key={item.href}
       href={item.href}
       hideSelectedIcon
       startContent={<Icon name={item.icon} />}
-      data-hover={item.href === activeItem?.href ? 'true' : undefined}
+      data-hover={item.href === activeItem?.href ? "true" : undefined}
       className="data-[selected=true]:transition-colors data-[selected=true]:bg-default/20 data-[selected=true]:text-default-foreground mt-2"
     >
-      <span className={isShrink ? 'hidden' : 'block'}>{item.label}</span>
+      <span className={isShrink ? "hidden" : "block"}>{item.label}</span>
     </ListboxItem>
   );
   return (
-    <aside className={cn(' space-y-8', isShrink ? 'w-16' : 'w-64', className)} {...props}>
+    <aside
+      className={cn(" space-y-8", isShrink ? "w-16" : "w-64", className)}
+      {...props}
+    >
       <div className="flex items-center justify-between gap-3">
         {!isShrink && (
           <div className="flex-1 flex items-center">
@@ -104,8 +107,8 @@ function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
                 )) as any
               }
               <SelectItem
-                key={'added'}
-                textValue={'New Workspace'}
+                key={"added"}
+                textValue={"New Workspace"}
                 onClick={() => {
                   setIsAddWorkspace(true);
                 }}
@@ -123,17 +126,25 @@ function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
       <NewWorkspace isOpen={isAddWorkspace} onOpenChange={setIsAddWorkspace} />
       <Input
         endContent={
-          <Kbd className="text-xs" keys={['command']}>
+          <Kbd className="text-xs" keys={["command"]}>
             K
           </Kbd>
         }
         placeholder="Search"
         size="sm"
       />
-      <Listbox selectedKeys={activeItem?.href} disallowEmptySelection selectionMode="single">
-        <ListboxSection title="Menu">{MENU_ITEMS.map((item) => renderItem(item))}</ListboxSection>
+      <Listbox
+        selectedKeys={activeItem?.href}
+        disallowEmptySelection
+        selectionMode="single"
+      >
+        <ListboxSection title="Menu">
+          {MENU_ITEMS.map((item) => renderItem(item))}
+        </ListboxSection>
       </Listbox>
-      <Button onClick={() => setIsShrink((p) => !p)}>{isShrink ? 'Expand' : 'Shrink'}</Button>
+      <Button onClick={() => setIsShrink((p) => !p)}>
+        {isShrink ? "Expand" : "Shrink"}
+      </Button>
     </aside>
   );
 }

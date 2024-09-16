@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { Icon, IconName } from '@/app/components/Icons';
-import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
+import { Icon, IconName } from "@/app/components/Icons";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export function ThemeSwitcher() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
   const ThemeMap: Record<string, IconName> = {
-    light: 'tabler/sun-filled',
-    dark: 'tabler/moon-filled',
+    light: "tabler/sun-filled",
+    dark: "tabler/moon-filled",
   };
 
   useEffect(() => {
@@ -20,7 +20,11 @@ export function ThemeSwitcher() {
 
   return (
     <div>
-      <Icon name={ThemeMap[theme as any]} size="md" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} />
+      <Icon
+        name={ThemeMap[theme ?? "dark"]}
+        size="md"
+        onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+      />
     </div>
   );
 }

@@ -1,24 +1,26 @@
-'use client';
-import useGetTodoById from '@/app/(main)/hooks/useGetTodoById';
-import Breadcumbs from '@/app/components/Breadcumbs';
-import { Icon } from '@/app/components/Icons';
-import SubtaskCircularProgress from '@/app/components/SubtaskCircularProgress';
-import { Todo } from '@models/todo';
-import { Card, CardBody, CardHeader } from '@nextui-org/card';
-import { Chip } from '@nextui-org/chip';
-import { Divider } from '@nextui-org/divider';
-import { Skeleton } from '@nextui-org/skeleton';
-import { format } from 'date-fns';
-import { notFound } from 'next/navigation';
+"use client";
+import useGetTodoById from "@/app/(main)/hooks/useGetTodoById";
+import Breadcumbs from "@/app/components/Breadcumbs";
+import { Icon } from "@/app/components/Icons";
+import SubtaskCircularProgress from "@/app/components/SubtaskCircularProgress";
+import { Todo } from "@models/todo";
+import { Card, CardBody, CardHeader } from "@nextui-org/card";
+import { Chip } from "@nextui-org/chip";
+import { Divider } from "@nextui-org/divider";
+import { Skeleton } from "@nextui-org/skeleton";
+import { format } from "date-fns";
+import { notFound } from "next/navigation";
 
-const statusColorMap: Record<Todo['status'], 'primary' | 'success' | 'warning' | 'danger'> = {
-  done: 'success',
-  'in-progress': 'warning',
-  todo: 'primary',
+const statusColorMap: Record<
+  Todo["status"],
+  "primary" | "success" | "warning" | "danger"
+> = {
+  done: "success",
+  "in-progress": "warning",
+  todo: "primary",
 };
 function TodoDetails({ id, workspaceId }: { id: string; workspaceId: string }) {
   const { data, isLoading } = useGetTodoById(workspaceId, id);
-  const progressSubTasks = data?.subTasks.filter((subTask) => subTask.status === 'done').length ?? 0;
   if (isLoading)
     return (
       <div className="pt-2 max-h-screen min-w-[300px] overflow-auto space-y-4 relative">
@@ -60,31 +62,38 @@ function TodoDetails({ id, workspaceId }: { id: string; workspaceId: string }) {
         className="px-4"
         items={[
           {
-            label: 'Home',
-            href: '',
+            label: "Home",
+            href: "",
             disabled: true,
           },
           {
-            label: 'Todo',
-            href: '/',
+            label: "Todo",
+            href: "/",
           },
           {
-            label: data?.id || 'Loading...',
-            href: '/',
+            label: data?.id || "Loading...",
+            href: "/",
           },
         ]}
       />
       <div className="px-4 space-y-2">
-        <Card isBlurred shadow="none" radius="sm" className="border border-default-200">
+        <Card
+          isBlurred
+          shadow="none"
+          radius="sm"
+          className="border border-default-200"
+        >
           <CardHeader className="uppercase text-3xl text-content1-foreground font-bold tracking-widest">
             {data?.title}
           </CardHeader>
           <CardBody>
-            <p className="text-content3-foreground">{data?.description || 'No description'}</p>
+            <p className="text-content3-foreground">
+              {data?.description || "No description"}
+            </p>
             <Divider className="my-8" />
             <div className="flex gap-2 divide-x-2 divide-divider justify-evenly items-center text-sm">
               <div className="w-full px-4">
-                Status:{' '}
+                Status:{" "}
                 <Chip
                   color={statusColorMap[data?.status]}
                   className="capitalize border-none gap-1 text-default-600"
@@ -100,7 +109,9 @@ function TodoDetails({ id, workspaceId }: { id: string; workspaceId: string }) {
                 <span className="text-default-600">
                   <Icon name="tabler/clock-2-outline" />
                   &nbsp;
-                  {data?.dueDate ? format(data.dueDate, 'dd MMM') : 'No due date'}
+                  {data?.dueDate
+                    ? format(data.dueDate, "dd MMM")
+                    : "No due date"}
                 </span>
               </div>
               <div className="w-full px-4 flex items-center">
@@ -111,14 +122,26 @@ function TodoDetails({ id, workspaceId }: { id: string; workspaceId: string }) {
           </CardBody>
         </Card>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(450px,1fr))] gap-4">
-          <Card isBlurred shadow="none" radius="sm" className="border border-default-200">
-            <CardHeader className="text-content1-foreground font-medium">Sub Tasks</CardHeader>
+          <Card
+            isBlurred
+            shadow="none"
+            radius="sm"
+            className="border border-default-200"
+          >
+            <CardHeader className="text-content1-foreground font-medium">
+              Sub Tasks
+            </CardHeader>
             <CardBody>
               {data?.subTasks.length === 0 ? (
-                <p className="h-32 flex items-center justify-center opacity-20">No sub tasks yet</p>
+                <p className="h-32 flex items-center justify-center opacity-20">
+                  No sub tasks yet
+                </p>
               ) : (
                 data?.subTasks.map((subTask) => (
-                  <div key={subTask.id} className="flex items-center justify-between gap-2">
+                  <div
+                    key={subTask.id}
+                    className="flex items-center justify-between gap-2"
+                  >
                     <Chip
                       color={statusColorMap[subTask.status]}
                       className="capitalize border-none gap-1 text-default-600"
@@ -131,7 +154,9 @@ function TodoDetails({ id, workspaceId }: { id: string; workspaceId: string }) {
                     <span className="text-default-600">
                       <Icon name="tabler/clock-2-outline" />
                       &nbsp;
-                      {subTask.dueDate ? format(subTask.dueDate, 'dd MMM') : 'No due date'}
+                      {subTask.dueDate
+                        ? format(subTask.dueDate, "dd MMM")
+                        : "No due date"}
                     </span>
                   </div>
                 ))

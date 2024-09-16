@@ -1,29 +1,35 @@
-'use client';
-import TableActionToast from '@/app/(main)/components/TableActionToast';
-import useAddTodo from '@/app/(main)/hooks/useAddTodo';
-import useDeleteTodo from '@/app/(main)/hooks/useDeleteTodo';
-import useGetTodo from '@/app/(main)/hooks/useGetTodo';
-import ActionToast from '@/app/components/ActionToast';
-import AddTodoPanel from '@/app/components/AddTodo';
-import Breadcumbs from '@/app/components/Breadcumbs';
-import useConfirm from '@/app/components/ConfirmDialog';
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/app/components/ContextMenu';
-import { Icon } from '@/app/components/Icons';
-import TodoTable from '@/app/components/TodoTable';
-import { useTableControl } from '@/app/components/useTableControl';
-import { Input, Selection } from '@nextui-org/react';
-import { useRouter } from 'next/navigation';
-import React, { useMemo } from 'react';
+"use client";
+import TableActionToast from "@/app/(main)/components/TableActionToast";
+import useAddTodo from "@/app/(main)/hooks/useAddTodo";
+import useDeleteTodo from "@/app/(main)/hooks/useDeleteTodo";
+import useGetTodo from "@/app/(main)/hooks/useGetTodo";
+import ActionToast from "@/app/components/ActionToast";
+import AddTodoPanel from "@/app/components/AddTodo";
+import Breadcumbs from "@/app/components/Breadcumbs";
+import useConfirm from "@/app/components/ConfirmDialog";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/app/components/ContextMenu";
+import { Icon } from "@/app/components/Icons";
+import TodoTable from "@/app/components/TodoTable";
+import { useTableControl } from "@/app/components/useTableControl";
+import { Input, Selection } from "@nextui-org/react";
+import { useRouter } from "next/navigation";
+import React, { useMemo } from "react";
 
 type TodoMainSectionProps = {
   workspaceId: string;
 };
 function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
-  const { filterValue, selectedKeys, setFilterValue, setSelectedKeys } = useTableControl();
+  const { filterValue, selectedKeys, setFilterValue, setSelectedKeys } =
+    useTableControl();
   const { confirm } = useConfirm();
   const router = useRouter();
   const isActionToastOpen = useMemo(() => {
-    const isAll = selectedKeys === 'all';
+    const isAll = selectedKeys === "all";
     if (isAll) return true;
 
     return selectedKeys.size > 0;
@@ -36,13 +42,13 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
   const [open, setOpen] = React.useState(false);
   const onDeleteTodos = async (selection: Selection) => {
     const isActionConfirmed = await confirm({
-      title: 'Delete Todo',
-      description: 'Are you sure you want to delete the selected todo?',
-      confirmButton: { children: 'Delete', color: 'danger' },
-      cancelButton: { children: 'Cancel' },
+      title: "Delete Todo",
+      description: "Are you sure you want to delete the selected todo?",
+      confirmButton: { children: "Delete", color: "danger" },
+      cancelButton: { children: "Cancel" },
     });
     if (!isActionConfirmed) return;
-    if (selection === 'all') {
+    if (selection === "all") {
       return;
     } else {
       const ids = Array.from(selection);
@@ -51,10 +57,10 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
     }
   };
   const editTodo = useMemo(() => {
-    if (selectedKeys === 'all' || selectedKeys.size !== 1) return undefined;
+    if (selectedKeys === "all" || selectedKeys.size !== 1) return undefined;
     const id = Array.from(selectedKeys)[0];
     return data?.find((todo) => todo.id === id);
-  }, [selectedKeys]);
+  }, [selectedKeys, data]);
   const onSearchChange = (value: string) => {
     setFilterValue(value);
   };
@@ -64,13 +70,13 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
         className="px-4"
         items={[
           {
-            label: 'Home',
-            href: '',
+            label: "Home",
+            href: "",
             disabled: true,
           },
           {
-            label: 'Todo',
-            href: '/',
+            label: "Todo",
+            href: "/",
           },
         ]}
       />
@@ -80,19 +86,29 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
             <Input
               isClearable
               classNames={{
-                base: 'w-1/4 sm:max-w-[44%]',
-                inputWrapper: 'border-1',
+                base: "w-1/4 sm:max-w-[44%]",
+                inputWrapper: "border-1",
               }}
               placeholder="Search by name..."
               size="sm"
-              startContent={<Icon name="tabler/search-outline" className="text-default-300" />}
+              startContent={
+                <Icon
+                  name="tabler/search-outline"
+                  className="text-default-300"
+                />
+              }
               value={filterValue}
               variant="bordered"
-              onClear={() => onSearchChange('')}
+              onClear={() => onSearchChange("")}
               onValueChange={onSearchChange}
             />
             <div className="flex gap-3">
-              <AddTodoPanel onSubmit={addTodo} open={open} setOpen={setOpen} defaultValues={editTodo} />
+              <AddTodoPanel
+                onSubmit={addTodo}
+                open={open}
+                setOpen={setOpen}
+                defaultValues={editTodo}
+              />
             </div>
           </div>
         </div>
@@ -102,8 +118,13 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
           <TodoTable workspaceId={workspaceId} />
         </ContextMenuTrigger>
         <ContextMenuContent>
-          <ContextMenuItem onClick={() => refetch()}>Refresh Data</ContextMenuItem>
-          <ContextMenuItem onClick={() => setOpen(true)} endContent={<Icon name="tabler/pencil-outline" size="sm" />}>
+          <ContextMenuItem onClick={() => refetch()}>
+            Refresh Data
+          </ContextMenuItem>
+          <ContextMenuItem
+            onClick={() => setOpen(true)}
+            endContent={<Icon name="tabler/pencil-outline" size="sm" />}
+          >
             Edit
           </ContextMenuItem>
           {editTodo && (
@@ -120,26 +141,26 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
       </ContextMenu>
       <ActionToast
         actions={[
-          selectedKeys !== 'all' && selectedKeys.size > 1
+          selectedKeys !== "all" && selectedKeys.size > 1
             ? {
-                children: 'De-select',
-                variant: 'faded',
+                children: "De-select",
+                variant: "faded",
                 onClick: () => setSelectedKeys(new Set()),
-                color: 'secondary',
+                color: "secondary",
                 startContent: <Icon name="tabler/circle-x-filled" />,
               }
             : {
-                children: 'Edit',
-                variant: 'faded',
+                children: "Edit",
+                variant: "faded",
                 onClick: () => setOpen(true),
-                color: 'primary',
+                color: "primary",
                 startContent: <Icon name="tabler/pencil-outline" />,
               },
           {
-            children: 'Delete',
-            variant: 'faded',
+            children: "Delete",
+            variant: "faded",
             onClick: () => onDeleteTodos(selectedKeys),
-            color: 'danger',
+            color: "danger",
             startContent: <Icon name="tabler/trash-outline" />,
           },
         ]}
