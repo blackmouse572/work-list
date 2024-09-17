@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { notFound } from "next/navigation";
 import useUpdateTodoSubTask from "../../hooks/useUpdateTodoSubtask";
 import { toast } from "sonner";
+import { ChartDemo } from "@/app/components/DemoChart";
 
 const statusColorMap: Record<
   Todo["status"],
@@ -245,6 +246,7 @@ function TodoDetails({ id, workspaceId }: { id: string; workspaceId: string }) {
               <pre>{JSON.stringify(data, null, 2)}</pre>
             </CardBody>
           </Card>
+          <ChartDemo />
         </div>
       </div>
     </div>

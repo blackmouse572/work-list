@@ -1,7 +1,6 @@
 "use client";
 import workspaceService from "@/app/(main)/actions/workspace.local.action";
 import useGetWorkspaces from "@/app/(main)/hooks/useGetWorkspace";
-import { DEFAULT_WORKSPACE_ID } from "@/app/(main)/todo/constant";
 import { Icon, IconName } from "@/app/components/Icons";
 import NewWorkspace from "@/app/components/NewWorkspace";
 import { Workspace } from "@models/workspace";
