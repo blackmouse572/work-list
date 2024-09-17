@@ -9,7 +9,6 @@ export default function useAddTodo(workspaceId: string) {
     mutationFn: (data) =>
       todoService.addTodo(workspaceId, {
         ...data,
-        subTasks: [],
         tags: [],
         status: 'todo',
       }),

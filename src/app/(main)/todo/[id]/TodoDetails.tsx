@@ -3,13 +3,17 @@ import useGetTodoById from "@/app/(main)/hooks/useGetTodoById";
 import Breadcumbs from "@/app/components/Breadcumbs";
 import { Icon } from "@/app/components/Icons";
 import SubtaskCircularProgress from "@/app/components/SubtaskCircularProgress";
+import { priorityColorMap, priorityIconMap } from "@/misc/user.mixin";
 import { Todo } from "@models/todo";
 import { Card, CardBody, CardHeader } from "@nextui-org/card";
 import { Chip } from "@nextui-org/chip";
 import { Divider } from "@nextui-org/divider";
+import { Select, SelectItem } from "@nextui-org/select";
 import { Skeleton } from "@nextui-org/skeleton";
 import { format } from "date-fns";
 import { notFound } from "next/navigation";
+import useUpdateTodoSubTask from "../../hooks/useUpdateTodoSubtask";
+import { toast } from "sonner";
 
 const statusColorMap: Record<
   Todo["status"],
@@ -21,6 +25,19 @@ const statusColorMap: Record<
 };
 function TodoDetails({ id, workspaceId }: { id: string; workspaceId: string }) {
   const { data, isLoading } = useGetTodoById(workspaceId, id);
+  const { mutateAsync: update } = useUpdateTodoSubTask(workspaceId, id);
+  const onUpdateSubTaskStatus = (subTaskId: string, status: Todo["status"]) => {
+    const currentSubTasks = data?.subTasks || [];
+    const updatedSubTasks = currentSubTasks.map((subTask) =>
+      subTask.id === subTaskId ? { ...subTask, status } : subTask
+    );
+    const promise = update(updatedSubTasks);
+    toast.promise(promise, {
+      loading: `Updating sub task status...`,
+      success: "Sub task updated",
+      error: "Failed to update sub task",
+    });
+  };
   if (isLoading)
     return (
       <div className="pt-2 max-h-screen min-w-[300px] overflow-auto space-y-4 relative">
@@ -132,35 +149,100 @@ function TodoDetails({ id, workspaceId }: { id: string; workspaceId: string }) {
               Sub Tasks
             </CardHeader>
             <CardBody>
-              {data?.subTasks.length === 0 ? (
-                <p className="h-32 flex items-center justify-center opacity-20">
-                  No sub tasks yet
-                </p>
-              ) : (
-                data?.subTasks.map((subTask) => (
-                  <div
-                    key={subTask.id}
-                    className="flex items-center justify-between gap-2"
-                  >
-                    <Chip
-                      color={statusColorMap[subTask.status]}
-                      className="capitalize border-none gap-1 text-default-600"
-                      size="sm"
-                      variant="faded"
-                      radius="sm"
+              <div className="space-y-8">
+                {data?.subTasks.length === 0 ? (
+                  <p className="h-32 flex items-center justify-center opacity-20">
+                    No sub tasks yet
+                  </p>
+                ) : (
+                  data?.subTasks.map((subTask) => (
+                    <div
+                      key={subTask.id}
+                      className="flex items-center justify-between gap-2"
                     >
-                      {subTask.title}
-                    </Chip>
-                    <span className="text-default-600">
-                      <Icon name="tabler/clock-2-outline" />
-                      &nbsp;
-                      {subTask.dueDate
-                        ? format(subTask.dueDate, "dd MMM")
-                        : "No due date"}
-                    </span>
-                  </div>
-                ))
-              )}
+                      <div>
+                        <Icon
+                          name={priorityIconMap[subTask.priority]}
+                          color={priorityColorMap[subTask.priority]}
+                        />
+                        <span className="ml-2">{subTask.title}</span>
+                      </div>
+                      <Select
+                        size="sm"
+                        // selectedKeys={[field.value]}
+                        onSelectionChange={(e) =>
+                          onUpdateSubTaskStatus(
+                            subTask.id,
+                            e.anchorKey as Todo["status"]
+                          )
+                        }
+                        placeholder="Select status"
+                        className="w-[200px]"
+                        defaultSelectedKeys={[subTask.status]}
+                        labelPlacement="outside-left"
+                        renderValue={(value) =>
+                          value.map((v) => (
+                            <Chip
+                              key={v.key}
+                              className="capitalize border-none gap-1 text-default-600"
+                              color={
+                                statusColorMap[
+                                  v.key as "todo" | "in-progress" | "done"
+                                ]
+                              }
+                              variant="dot"
+                            >
+                              {v.textValue}
+                            </Chip>
+                          ))
+                        }
+                        variant="bordered"
+                      >
+                        <SelectItem key="todo" textValue="To do">
+                          <Chip
+                            className="capitalize border-none gap-1 text-default-600"
+                            color={statusColorMap["todo"]}
+                            variant="dot"
+                          >
+                            Todo
+                          </Chip>
+                        </SelectItem>
+                        <SelectItem key="in-progress" textValue="In progress">
+                          <Chip
+                            className="capitalize border-none gap-1 text-default-600"
+                            color={statusColorMap["in-progress"]}
+                            variant="dot"
+                          >
+                            In progress
+                          </Chip>
+                        </SelectItem>
+                        <SelectItem key="done" textValue="Done">
+                          <Chip
+                            className="capitalize border-none gap-1 text-default-600"
+                            color={statusColorMap["done"]}
+                            variant="dot"
+                          >
+                            Done
+                          </Chip>
+                        </SelectItem>
+                      </Select>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardBody>
+          </Card>
+          <Card
+            isBlurred
+            shadow="none"
+            radius="sm"
+            className="border border-default-200"
+          >
+            <CardHeader className="text-content1-foreground font-medium">
+              Raw Data
+            </CardHeader>
+            <CardBody>
+              <pre>{JSON.stringify(data, null, 2)}</pre>
             </CardBody>
           </Card>
         </div>

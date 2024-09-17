@@ -1,9 +1,8 @@
 "use client";
 
-import useGetTodo from "@/app/(main)/hooks/useGetTodo";
 import LoadingTable from "@/app/components/LoadingTable";
 import { useTableControl } from "@/app/components/useTableControl";
-import { getDueDateLabel } from "@/misc/table.mixin";
+import { getDueDateColor, getDueDateLabel } from "@/misc/table.mixin";
 import { Todo } from "@models/todo";
 import {
   Chip,
@@ -14,33 +13,24 @@ import {
   TableColumnProps,
   TableHeader,
   TableRow,
+  Tooltip,
 } from "@nextui-org/react";
-import React, { useMemo } from "react";
+import React from "react";
 import EmptyToDoTable from "./EmptyTodoTable";
-import { statusColorMap } from "@/misc/user.mixin";
-import { useSearchParams } from "next/navigation";
-import { FilterTodoTableSchema } from "./FilterTable";
+import {
+  priorityColorMap,
+  priorityIconMap,
+  statusColorMap,
+} from "@/misc/user.mixin";
+import { Icon } from "./Icons";
 
 type ToDoTableProps = {
   workspaceId: string;
   onCreateTask: () => void;
+  items?: Todo[];
+  isLoading: boolean;
 };
-function TodoTable({ workspaceId, onCreateTask }: ToDoTableProps) {
-  const searchParams = useSearchParams();
-  const filter = useMemo(() => {
-    const status = searchParams.get("status") ?? "all";
-    const priority = searchParams.get("priority") ?? "all";
-    const dueDateStart = searchParams.get("dueDateStart");
-    const dueDateEnd = searchParams.get("dueDateEnd");
-
-    return FilterTodoTableSchema.parse({
-      status,
-      priority,
-      dueDateStart: dueDateStart ? new Date(dueDateStart) : undefined,
-      dueDateEnd: dueDateEnd ? new Date(dueDateEnd) : undefined,
-    });
-  }, [searchParams]);
-  const { data: items, isLoading } = useGetTodo(workspaceId, filter);
+function TodoTable({ isLoading, items, onCreateTask }: ToDoTableProps) {
   const {
     sortDescriptor,
     addToSelection,
@@ -84,7 +74,15 @@ function TodoTable({ workspaceId, onCreateTask }: ToDoTableProps) {
     switch (columnKey) {
       case "id": {
         return (
-          <span className="text-default-300">[{item.id.toUpperCase()}]</span>
+          <>
+            <Icon
+              name={priorityIconMap[item.priority]}
+              color={priorityColorMap[item.priority]}
+            />
+            <span className="text-default-300 ml-2">
+              [{item.id.toUpperCase()}]
+            </span>
+          </>
         );
       }
       case "title":
@@ -101,15 +99,18 @@ function TodoTable({ workspaceId, onCreateTask }: ToDoTableProps) {
           </Chip>
         );
       case "dueDate":
-        return <span> {getDueDateLabel(item)} </span>;
+        return (
+          <span className={`text-${getDueDateColor(item)} font-medium`}>
+            {getDueDateLabel(item)}{" "}
+          </span>
+        );
       case "subTasks":
-        return <span> {item.subTasks.length} </span>;
+        return <span> {item.subTasks?.length} </span>;
       case "tags":
         // fist 3 tags
-        const tags = item.tags.slice(0, 1);
         return (
           <div className="flex flex-wrap gap-1">
-            {tags.map((tag) => (
+            {item.tags.slice(0, 2).map((tag) => (
               <Chip
                 key={tag}
                 className="capitalize border-none gap-1 text-default-600"
@@ -121,16 +122,35 @@ function TodoTable({ workspaceId, onCreateTask }: ToDoTableProps) {
                 {tag}
               </Chip>
             ))}
-            {item.tags.length > 1 && (
-              <Chip
-                className="capitalize border-none gap-1 text-default-600"
-                color="primary"
-                size="sm"
-                variant="faded"
-                radius="sm"
+            {item.tags.length > 2 && (
+              <Tooltip
+                content={
+                  <div className="flex flex-wrap gap-1">
+                    {item.tags.slice(2, item.tags.length).map((tag) => (
+                      <Chip
+                        key={tag}
+                        className="capitalize border-none gap-1 text-default-600"
+                        color="primary"
+                        size="sm"
+                        variant="faded"
+                        radius="sm"
+                      >
+                        {tag}
+                      </Chip>
+                    ))}
+                  </div>
+                }
               >
-                +{item.tags.length - 1}
-              </Chip>
+                <Chip
+                  className="capitalize border-none gap-1 text-default-600"
+                  color="primary"
+                  size="sm"
+                  variant="faded"
+                  radius="sm"
+                >
+                  +{item.tags.length - 2}
+                </Chip>
+              </Tooltip>
             )}
           </div>
         );

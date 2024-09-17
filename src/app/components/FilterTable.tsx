@@ -26,6 +26,7 @@ import { Todo } from "@models/todo";
 import { parseDate } from "@internationalized/date";
 import { format } from "date-fns";
 export const FilterTodoTableSchema = z.object({
+  search: z.string().optional(),
   status: z.enum(["all", "todo", "in-progress", "done"]).default("all"),
   priority: z.enum(["all", "low", "medium", "high"]).default("all"),
   dueDateStart: z.date().optional(),

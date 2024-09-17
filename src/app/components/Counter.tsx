@@ -1,8 +1,8 @@
-import { getPlaceValue } from '@/misc/table.mixin';
-import { MotionValue, motion, useSpring, useTransform } from 'framer-motion';
-import React, { useEffect } from 'react';
+import { getPlaceValue } from "@/misc/table.mixin";
+import { MotionValue, motion, useSpring, useTransform } from "framer-motion";
+import React, { useEffect } from "react";
 
-const fontSize = 30;
+const fontSize = 16;
 const padding = 15;
 const height = fontSize + padding;
 
@@ -23,12 +23,18 @@ export function Counter({
       layout="position"
     >
       {prefix}
-      {[...Array(place.toString().split('').length)].map((_, i) => {
-        const placeValue = place === 1 ? 1 : Math.floor(place / Math.pow(10, i));
+      {[...Array(place.toString().split("").length)].map((_, i) => {
+        const placeValue =
+          place === 1 ? 1 : Math.floor(place / Math.pow(10, i));
         return <Digit key={placeValue} place={placeValue} value={value} />;
       })}
       {suffix && (
-        <motion.span layout="position" id="suffix" layoutId="suffix" className="flex items-center justify-center">
+        <motion.span
+          layout="position"
+          id="suffix"
+          layoutId="suffix"
+          className="flex items-center justify-center"
+        >
           &nbsp;
           {suffix}
         </motion.span>
@@ -46,7 +52,7 @@ function Digit({ place, value }: { place: number; value: number }) {
   }, [animatedValue, valueRoundedToPlace]);
 
   return (
-    <div style={{ height }} className="relative w-[0.75ch]">
+    <div style={{ height }} className="relative w-[1ch]">
       {[...Array(10)].map((_, i) => (
         <Number key={i} mv={animatedValue} number={i} />
       ))}
@@ -68,7 +74,10 @@ function Number({ mv, number }: { mv: MotionValue; number: number }) {
     return memo;
   });
   return (
-    <motion.span style={{ y }} className="absolute inset-0 flex items-center justify-center text-sm">
+    <motion.span
+      style={{ y }}
+      className="absolute inset-0 flex items-center justify-center text-sm"
+    >
       {number}
     </motion.span>
   );

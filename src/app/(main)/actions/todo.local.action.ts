@@ -2,7 +2,6 @@ import { FilterTodoTableSchema } from '@/app/components/FilterTable';
 import { Todo } from '@models/todo';
 
 class TodoService {
-  constructor() { }
   getTodos(workspaceId: string, filter?: FilterTodoTableSchema) {
     const storageKey = this.getTodosWorkspaceKey(workspaceId);
     const todo = localStorage.getItem(storageKey);
@@ -11,40 +10,85 @@ class TodoService {
       return [];
     }
     console.debug('[DEBUG] TodoService.getTodos from workspaceId: ', workspaceId, ' todo: ', todo.length);
-    const value = JSON.parse(todo) as Todo[];
-
-    // Filter out deleted todos
-    value.filter(t => { !t.deletedAt });
+    let value = JSON.parse(todo) as Todo[];
 
     if (!filter) {
       return value;
     }
+    value = this.handleFilter(filter, value);
+    return value;
+  }
+
+  private handleFilter(filter: FilterTodoTableSchema, todos: Todo[]) {
+    let value = todos;
+    value = value.filter((t) => this.handleFilterInternal(t, filter));
+
+    // search
+    if (filter.search) {
+      value = value.filter((t) => {
+        return t.title.toLowerCase().includes(filter.search!.toLowerCase()) || t.tags.join(' ').toLowerCase().includes(filter.search!.toLowerCase());
+      });
+    }
+
+    return value;
+  }
+
+  private handleFilterInternal(t: Todo, filter: FilterTodoTableSchema) {
     const { status, priority } = filter;
-    return value.filter((t) => {
-      if (status && status === 'all') {
-        return true;
-      } else if (status && t.status !== status) {
-        return false;
-      }
 
-      if (priority && priority === 'all') {
-        return true;
-      } else if (priority && t.priority !== priority) {
-        return false;
-      }
+    if (t.deletedAt) {
+      return false;
+    }
 
-      if (filter.dueDateStart && filter.dueDateEnd && t.dueDate) {
-        if (t.dueDate < filter.dueDateStart || t.dueDate > filter.dueDateEnd) {
-          return false;
-        }
-      }
+    if (!this.checkStatus(t, status)) {
+      return false;
+    }
 
-      if (filter.includeNoDueDate && t.dueDate) {
-        return true;
-      }
+    if (!this.checkPriority(t, priority)) {
+      return false;
+    }
 
+    if (!this.checkDueDate(t, filter)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private checkStatus(t: Todo, status: string | undefined) {
+    if (status && status === 'all') {
       return true;
-    });
+    } else if (status && t.status !== status) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private checkPriority(t: Todo, priority: string | undefined) {
+    if (priority && priority === 'all') {
+      return true;
+    } else if (priority && t.priority !== priority) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private checkDueDate(t: Todo, filter: FilterTodoTableSchema) {
+    const { dueDateStart, dueDateEnd, includeNoDueDate } = filter;
+
+    if (dueDateStart && dueDateEnd && t.dueDate) {
+      if (t.dueDate < dueDateStart || t.dueDate > dueDateEnd) {
+        return false;
+      }
+    }
+
+    if (includeNoDueDate && t.dueDate) {
+      return true;
+    }
+
+    return true;
   }
 
   getDeletedTodos(workspaceId: string) {
@@ -58,9 +102,9 @@ class TodoService {
     const value = JSON.parse(todo) as Todo[];
 
     // Filter out non-deleted todos
-    value.filter(t => { t.deletedAt });
 
-    return value;
+
+    return value.filter(t => !!t.deletedAt);;
   }
 
   getTodoById(workspaceId: string, todoId: string) {
@@ -85,6 +129,29 @@ class TodoService {
     return todos[todos.length - 1];
   }
 
+  async restoreTodoById(workspaceId: string, todoId: string) {
+    const storageKey = this.getTodosWorkspaceKey(workspaceId);
+    const todos = this.getTodos(workspaceId);
+    const index = todos.findIndex((t) => t.id === todoId);
+    todos[index].deletedAt = undefined;
+    localStorage.setItem(storageKey, JSON.stringify(todos));
+    console.debug('[DEBUG] TodoService.restoreTodoById from workspaceId: ', workspaceId, ' todoId: ', todoId);
+    return todos[index];
+  }
+
+  async restoreTodyByIds(workspaceId: string, todoIds: string[]) {
+    const storageKey = this.getTodosWorkspaceKey(workspaceId);
+    const todos = this.getTodos(workspaceId);
+    todoIds.forEach((todoId) => {
+      const index = todos.findIndex((t) => t.id === todoId);
+      todos[index].deletedAt = undefined;
+    });
+    localStorage.setItem(storageKey, JSON.stringify(todos));
+    console.debug('[DEBUG] TodoService.restoreTodoById from workspaceId: ', workspaceId, ' todoId: ', todoIds);
+    return todos;
+  }
+
+
   async updateTodo(workspaceId: string, todo: Partial<Todo>) {
     const storageKey = this.getTodosWorkspaceKey(workspaceId);
     const todos = this.getTodos(workspaceId);
@@ -106,6 +173,18 @@ class TodoService {
     return todoId;
   }
 
+  async forceDeleteTodoByIds(workspaceId: string, todoIds: string[]) {
+    const storageKey = this.getTodosWorkspaceKey(workspaceId);
+    const todos = this.getTodos(workspaceId);
+    todoIds.forEach((todoId) => {
+      const index = todos.findIndex((t) => t.id === todoId);
+      todos.splice(index, 1);
+    });
+    localStorage.setItem(storageKey, JSON.stringify(todos));
+    console.debug('[DEBUG] TodoService.deleteTodoById from workspaceId: ', workspaceId, ' todoId: ', todoIds);
+    return todoIds;
+  }
+
   async deleteTodoById(workspaceId: string, todoId: string) {
     const storageKey = this.getTodosWorkspaceKey(workspaceId);
     const todos = this.getTodos(workspaceId);
@@ -116,7 +195,18 @@ class TodoService {
     console.debug('[DEBUG] TodoService.deleteTodoById from workspaceId: ', workspaceId, ' todoId: ', todoId);
     return todoId;
   }
-
+  async deleteTodoByIds(workspaceId: string, todoIds: string[]) {
+    const storageKey = this.getTodosWorkspaceKey(workspaceId);
+    const todos = this.getTodos(workspaceId);
+    todoIds.forEach((todoId) => {
+      const index = todos.findIndex((t) => t.id === todoId);
+      // change deletedAt to current time
+      todos[index].deletedAt = new Date();
+    });
+    localStorage.setItem(storageKey, JSON.stringify(todos));
+    console.debug('[DEBUG] TodoService.deleteTodoByIds from workspaceId: ', workspaceId, ' todoId: ', todoIds);
+    return todoIds;
+  }
   updateTodoStatus(workspaceId: string, todoId: string, status: Todo['status']) {
     const storageKey = this.getTodosWorkspaceKey(workspaceId);
     const todos = this.getTodos(workspaceId);
@@ -133,7 +223,7 @@ class TodoService {
     localStorage.setItem(storageKey, JSON.stringify(todos));
   }
 
-  updateTodoSubTasks(workspaceId: string, todoId: string, subTasks: Todo[]) {
+  async updateTodoSubTasks(workspaceId: string, todoId: string, subTasks: Todo['subTasks']) {
     const storageKey = this.getTodosWorkspaceKey(workspaceId);
     const todos = this.getTodos(workspaceId);
     const index = todos.findIndex((t) => t.id === todoId);

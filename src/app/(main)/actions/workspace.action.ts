@@ -6,6 +6,7 @@ import { cookies } from 'next/headers';
 export async function saveWorkspaceId(workspaceId: string) {
   cookies().set('workspaceId', workspaceId, { path: '/' });
   revalidatePath('/');
+  revalidatePath('/(main)', 'layout');
   return workspaceId;
 }
 

@@ -6,10 +6,10 @@ export default function useDeleteTodo(workspaceId: string) {
 
   const data = useMutation<string, Error, string>({
     mutationFn: (data) => todoService.deleteTodoById(workspaceId, data),
-    mutationKey: ['todos', workspaceId],
+    mutationKey: ['todos', workspaceId, 'delete-todos'],
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['todos', workspaceId],
+        queryKey: ['todos', workspaceId, 'delete-todos'],
       });
     },
   });

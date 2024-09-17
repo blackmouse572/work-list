@@ -4,7 +4,7 @@ export interface Todo {
   description?: string;
   status: 'todo' | 'in-progress' | 'done';
   priority: 'low' | 'medium' | 'high';
-  subTasks: Todo[];
+  subTasks: Pick<Todo, 'id' | 'title' | 'status' | 'priority'>[];
   createdAt: Date;
   dueDate?: Date;
   updatedAt: Date;

@@ -27,6 +27,7 @@ import TagsField from "./TagField";
 import { useEffect } from "react";
 import { Icon } from "./Icons";
 import { priorityColorMap, priorityIconMap } from "@/misc/user.mixin";
+import SubTaskField from "./SubtaskField";
 
 export const AddTodoSchema = z.object({
   id: z.string().optional(),
@@ -36,8 +37,25 @@ export const AddTodoSchema = z.object({
   tags: z.array(z.string()),
   status: z.enum(["todo", "in-progress", "done"]).default("todo"),
   priority: z.enum(["low", "medium", "high"]).default("low"),
+  subTasks: z.array(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+      status: z.enum(["todo", "in-progress", "done"]).default("todo"),
+      priority: z.enum(["low", "medium", "high"]).default("low"),
+    })
+  ),
 });
 export type AddTodoSchema = z.infer<typeof AddTodoSchema>;
+const DEFAULT_TODO: AddTodoSchema = {
+  title: "",
+  description: "",
+  dueDate: new Date(),
+  tags: [],
+  status: "todo",
+  priority: "low",
+  subTasks: [],
+};
 
 type AddTodoPanelProps = {
   onSubmit: (data: z.infer<typeof AddTodoSchema>) => void;
@@ -58,9 +76,12 @@ function AddTodoPanel({
     resolver: zodResolver(AddTodoSchema),
     defaultValues,
   });
+
   useEffect(() => {
+    console.log("defaultValues", defaultValues);
     form.reset(defaultValues);
   }, [defaultValues, form]);
+
   const { control } = form;
   const handleSubmit = (data: AddTodoSchema) => {
     onSubmit(data);
@@ -102,9 +123,15 @@ function AddTodoPanel({
   };
 
   return (
-    <Drawer open={open} onClose={() => setOpen?.(false)} onOpenChange={setOpen}>
+    <Drawer
+      open={open}
+      onClose={() => {
+        form.reset(DEFAULT_TODO);
+      }}
+      onOpenChange={setOpen}
+    >
       <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-      <DrawerContent>
+      <DrawerContent className="overflow-y-auto overflow-x-hidden">
         {renderHeaderByEdit()}
         <Form {...form}>
           <form
@@ -112,7 +139,7 @@ function AddTodoPanel({
             onSubmit={form.handleSubmit(handleSubmit, (errors) =>
               console.error(errors)
             )}
-            className="px-4 space-y-6 mt-6"
+            className="px-4 space-y-6 mt-6 mb-4"
           >
             <FormField
               control={control}
@@ -273,12 +300,20 @@ function AddTodoPanel({
                 );
               }}
             />
+            <SubTaskField />
           </form>
         </Form>
-        <DrawerFooter className="justify-between">
+        <DrawerFooter className="justify-between sticky bottom-0 bg-content1 border-divider border-t">
           <div className="space-x-2">
             <DrawerClose asChild>
-              <Button variant="bordered" type="reset">
+              <Button
+                variant="bordered"
+                type="reset"
+                form="todo"
+                onClick={() => {
+                  form.reset(DEFAULT_TODO);
+                }}
+              >
                 Cancel
               </Button>
             </DrawerClose>

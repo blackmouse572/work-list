@@ -18,19 +18,43 @@ import { Icon } from "@/app/components/Icons";
 import TodoTable from "@/app/components/TodoTable";
 import { useTableControl } from "@/app/components/useTableControl";
 import { Button, Input, Selection } from "@nextui-org/react";
-import { useRouter } from "next/navigation";
-import React, { useMemo } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import React, { useCallback, useMemo } from "react";
 import useUpdateTodo from "../(main)/hooks/useUpdateTodo";
-import FilterTable from "./FilterTable";
+import FilterTable, { FilterTodoTableSchema } from "./FilterTable";
+import { debounce } from "lodash";
 
 type TodoMainSectionProps = {
   workspaceId: string;
 };
 function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
-  const { filterValue, selectedKeys, setFilterValue, setSelectedKeys } =
-    useTableControl();
+  const {
+    selectedKeys,
+    setSearchValue: setFilterValue,
+    setSelectedKeys,
+  } = useTableControl();
   const { confirm } = useConfirm();
+
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathName = usePathname();
+
+  const filter = useMemo(() => {
+    const status = searchParams.get("status") ?? "all";
+    const search = searchParams.get("search") ?? "";
+    const priority = searchParams.get("priority") ?? "all";
+    const dueDateStart = searchParams.get("dueDateStart");
+    const dueDateEnd = searchParams.get("dueDateEnd");
+
+    return FilterTodoTableSchema.parse({
+      search,
+      status,
+      priority,
+      dueDateStart: dueDateStart ? new Date(dueDateStart) : undefined,
+      dueDateEnd: dueDateEnd ? new Date(dueDateEnd) : undefined,
+    });
+  }, [searchParams]);
+
   const isActionToastOpen = useMemo(() => {
     const isAll = selectedKeys === "all";
     if (isAll) return true;
@@ -41,7 +65,7 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
   const { mutate: addTodo } = useAddTodo(workspaceId);
   const { mutate: updateTodo } = useUpdateTodo(workspaceId);
   const { mutateAsync: deleteTodo } = useDeleteTodo(workspaceId);
-  const { refetch, data } = useGetTodo(workspaceId);
+  const { refetch, data, isLoading } = useGetTodo(workspaceId, filter);
 
   const onRefetch = () => {
     toast.promise(refetch, {
@@ -53,10 +77,12 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
 
   const onCreate = () => {
     setSelectedKeys(new Set());
-    setOpen(true);
+    setOpenCreate(true);
   };
 
-  const [open, setOpen] = React.useState(false);
+  const [openEdit, setOpenEdit] = React.useState(false);
+  const [openCreate, setOpenCreate] = React.useState(false);
+
   const onDeleteTodos = async (selection: Selection) => {
     const isActionConfirmed = await confirm({
       title: "Delete Todo",
@@ -81,14 +107,36 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
       });
     }
   };
+
   const editTodo = useMemo(() => {
     if (selectedKeys === "all" || selectedKeys.size !== 1) return undefined;
     const id = Array.from(selectedKeys)[0];
     return data?.find((todo) => todo.id === id);
   }, [selectedKeys, data]);
+
+  const setSearchToSearchParam = useCallback(
+    (value: string) => {
+      const search = value.trim();
+      const url = new URLSearchParams(searchParams);
+      if (search) {
+        url.set("search", search);
+      } else {
+        url.delete("search");
+      }
+      router.push(pathName + "?" + url.toString());
+    },
+    [pathName, router, searchParams]
+  );
+  const debounceSetSearchToSearchParam = useMemo(
+    () => debounce(setSearchToSearchParam, 500),
+    [setSearchToSearchParam]
+  );
+
   const onSearchChange = (value: string) => {
     setFilterValue(value);
+    debounceSetSearchToSearchParam(value);
   };
+
   const onSubmitTodo = (todo: AddTodoSchema) => {
     if (editTodo) {
       updateTodo({
@@ -99,6 +147,7 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
       addTodo(todo);
     }
   };
+
   return (
     <div className="pt-2 h-screen min-w-[300px] overflow-auto space-y-4 relative">
       <Breadcumbs
@@ -132,8 +181,8 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
                   className="text-default-300"
                 />
               }
-              value={filterValue}
               variant="bordered"
+              defaultValue={filter.search}
               onClear={() => onSearchChange("")}
               onValueChange={onSearchChange}
             />
@@ -141,9 +190,8 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
               <FilterTable />
               <AddTodoPanel
                 onSubmit={onSubmitTodo}
-                open={open}
-                setOpen={setOpen}
-                defaultValues={editTodo}
+                open={openCreate}
+                setOpen={setOpenCreate}
                 trigger={
                   <Button
                     endContent={<Icon name="tabler/plus-outline" />}
@@ -154,7 +202,7 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
                     Add New
                   </Button>
                 }
-              ></AddTodoPanel>
+              />
             </div>
           </div>
         </div>
@@ -162,17 +210,22 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
       <ContextMenu>
         <ContextMenuTrigger>
           <TodoTable
+            items={data}
             workspaceId={workspaceId}
-            onCreateTask={() => setOpen(true)}
+            isLoading={isLoading}
+            onCreateTask={() => setOpenCreate(true)}
           />
         </ContextMenuTrigger>
         <ContextMenuContent>
-          <ContextMenuItem onClick={() => onRefetch()}>
+          <ContextMenuItem
+            onClick={() => onRefetch()}
+            endContent={<Icon name="tabler/progress-outline" size="sm" />}
+          >
             Refresh Data
           </ContextMenuItem>
           {editTodo && (
             <ContextMenuItem
-              onClick={() => setOpen(true)}
+              onClick={() => setOpenEdit(true)}
               endContent={<Icon name="tabler/pencil-outline" size="sm" />}
             >
               Edit
@@ -190,6 +243,16 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
           )}
         </ContextMenuContent>
       </ContextMenu>
+
+      {/* EDIT PANEL */}
+      <AddTodoPanel
+        onSubmit={onSubmitTodo}
+        open={openEdit}
+        setOpen={setOpenEdit}
+        defaultValues={editTodo}
+        trigger={<></>}
+      />
+
       <ActionToast
         actions={[
           selectedKeys !== "all" && selectedKeys.size > 1
@@ -203,7 +266,7 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
             : {
                 children: "Edit",
                 variant: "faded",
-                onClick: () => setOpen(true),
+                onClick: () => setOpenEdit(true),
                 color: "primary",
                 startContent: <Icon name="tabler/pencil-outline" />,
               },

@@ -9,17 +9,14 @@ import { Avatar } from "@nextui-org/avatar";
 import {
   Button,
   cn,
-  Input,
-  Kbd,
-  Listbox,
-  ListboxItem,
-  ListboxSection,
   Select,
   SelectItem,
   SharedSelection,
 } from "@nextui-org/react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React from "react";
+import React, { useEffect } from "react";
+import GlobalCommand from "./GlobalCommand";
 
 type AsideNavProps = React.HTMLAttributes<HTMLElement> & {
   workspaceId?: string;
@@ -33,7 +30,7 @@ type MenuItem = {
 };
 const MENU_ITEMS: MenuItem[] = [
   {
-    icon: "tabler/grid-4x4-outline",
+    icon: "tabler/layout-grid-outline",
     label: "Task",
     href: "/",
   },
@@ -48,6 +45,18 @@ const MENU_ITEMS: MenuItem[] = [
     href: "/settings",
   },
 ];
+const AUTHOR_MENU_ITEMS: MenuItem[] = [
+  {
+    icon: "tabler/chevron-right-outline",
+    label: "Contact",
+    href: "https://portfolio-five-theta-76.vercel.app/",
+  },
+  {
+    icon: "tabler/users-outline",
+    label: "About",
+    href: "/about",
+  },
+];
 function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
   const [selectedWorkspace, setSelectedWorkspace] = React.useState<Workspace>();
   const [isShrink, _] = React.useState(false);
@@ -59,28 +68,35 @@ function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
   const onSelectionChanges = (e: SharedSelection) => {
     const workspace = data?.find((w) => w.id === e.anchorKey);
     if (!workspace || workspace.id === "added") return;
-    console.log({ workspace });
     setSelectedWorkspace(workspace);
     workspaceService.selectWorkspace(workspace.id);
   };
   const activeItem =
     MENU_ITEMS.find((item) => item.href === path) || MENU_ITEMS[0];
   const renderItem = (item: MenuItem) => (
-    <Button
-      key={item.href}
-      href={item.href}
-      disableRipple
-      startContent={<Icon name={item.icon} />}
-      color={activeItem.href === item.href ? "primary" : "default"}
-      variant={activeItem.href === item.href ? "flat" : "light"}
-      data-selected={activeItem.href === item.href}
-      isIconOnly={isShrink}
-    >
-      <span className={cn(isShrink ? "hidden" : "block", "w-full text-start")}>
-        {item.label}
-      </span>
-    </Button>
+    <Link key={item.href} href={item.href} className="w-full">
+      <Button
+        href={item.href}
+        disableRipple
+        startContent={<Icon name={item.icon} />}
+        color={activeItem.href === item.href ? "primary" : "default"}
+        variant={activeItem.href === item.href ? "flat" : "light"}
+        data-selected={activeItem.href === item.href}
+        isIconOnly={isShrink}
+        className="w-full"
+      >
+        <span
+          className={cn(isShrink ? "hidden" : "block", "w-full text-start")}
+        >
+          {item.label}
+        </span>
+      </Button>
+    </Link>
   );
+
+  useEffect(() => {
+    setSelectedWorkspace(data?.find((w) => w.id === workspaceId));
+  }, [data, workspaceId]);
   return (
     <aside
       className={cn(" space-y-8", isShrink ? "w-16" : "w-64", className)}
@@ -91,8 +107,8 @@ function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
           <div className="flex-1 flex items-center">
             <Select
               items={data}
-              defaultSelectedKeys={[workspaceId ?? DEFAULT_WORKSPACE_ID]}
-              selectedKeys={[selectedWorkspace?.id ?? DEFAULT_WORKSPACE_ID]}
+              defaultSelectedKeys={[workspaceId!]}
+              selectedKeys={selectedWorkspace && [selectedWorkspace?.id]}
               onSelectionChange={onSelectionChanges}
               placeholder="Select Workspace"
               size="sm"
@@ -124,21 +140,23 @@ function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
             </Select>
           </div>
         )}
-        <Avatar className="aspect-square" src="" name="John Doe" size="sm" />
+        <Avatar
+          className="aspect-square"
+          src="/avatars/extension_icon_solid.png"
+          name="John Doe"
+          size="sm"
+        />
       </div>
       <NewWorkspace isOpen={isAddWorkspace} onOpenChange={setIsAddWorkspace} />
-      <Input
-        endContent={
-          <Kbd className="text-xs" keys={["command"]}>
-            K
-          </Kbd>
-        }
-        placeholder="Search"
-        size="sm"
-      />
+      <GlobalCommand workspaceId={workspaceId!} />
+
       <div className="flex flex-col gap-2">
         <h4 className="text-sm text-default-500">Main</h4>
         {MENU_ITEMS.map((item) => renderItem(item))}
+      </div>
+      <div className="flex flex-col gap-2">
+        <h4 className="text-sm text-default-500">Author</h4>
+        {AUTHOR_MENU_ITEMS.map((item) => renderItem(item))}
       </div>
     </aside>
   );

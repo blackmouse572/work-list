@@ -1,7 +1,15 @@
-import { faker } from '@faker-js/faker';
 import { Todo } from '@models/todo';
-import { format, formatDistanceToNowStrict, isPast } from 'date-fns';
-
+import { ButtonProps } from '@nextui-org/button';
+import { format, intlFormatDistance, isAfter, isBefore, } from 'date-fns';
+export function getDueDateColor(item: Pick<Todo, 'dueDate' | 'createdAt'>): ButtonProps['color'] {
+  if (!item.dueDate) {
+    return 'default';
+  }
+  if (isBefore(item.dueDate, new Date())) {
+    return 'danger';
+  }
+  return 'success';
+}
 export function getDueDateLabel(item: Pick<Todo, 'dueDate' | 'createdAt'>) {
   if (!item.dueDate) {
     return 'No Due Date';
@@ -10,24 +18,15 @@ export function getDueDateLabel(item: Pick<Todo, 'dueDate' | 'createdAt'>) {
   // if due date is in 1 week, 1 day, 2 day, show "Due in 1 week", "Due in 1 day", "Due in 2 days"
   // if due date is in past, show "Overdue by 1 week", "Overdue by 1 day", "Overdue by 2 days"
   // else show in format "dd MMM"
-  if (isPast(item.dueDate)) {
-    return `Overdue by ${formatDistanceToNowStrict(item.dueDate)}`;
+  const lastWeek = new Date().setDate(new Date().getDate() - 7);
+  if (isAfter(item.dueDate, lastWeek)) {
+    const diff = intlFormatDistance(item.dueDate, new Date(), {
+      numeric: 'auto'
+    });
+    return `Overdue by ${diff}`;
   }
 
   return format(item.createdAt, 'dd MMM') + ' - ' + format(item.dueDate, 'dd MMM');
-}
-export function randomTodo(): Todo {
-  return {
-    title: faker.lorem.words(4),
-    status: Array.from(['todo', 'in-progress', 'done'])[Math.floor(Math.random() * 3)] as Todo['status'],
-    subTasks: [],
-    tags: [faker.lorem.word(), faker.lorem.word(), faker.lorem.word()],
-    dueDate: faker.date.future(),
-    description: '',
-    createdAt: faker.date.past(),
-    id: faker.database.mongodbObjectId(),
-    updatedAt: faker.date.recent(),
-  };
 }
 
 export function getPlaceValue(num: number): number {
