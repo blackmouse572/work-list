@@ -9,6 +9,7 @@ export type IconName =
 	| "tabler/chevron-left-outline"
 	| "tabler/chevron-right-outline"
 	| "tabler/chevron-up-outline"
+	| "tabler/chevrons-right-outline"
 	| "tabler/circle-check-filled"
 	| "tabler/circle-dashed-plus-outline"
 	| "tabler/circle-x-filled"
