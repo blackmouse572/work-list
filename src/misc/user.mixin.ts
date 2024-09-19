@@ -47,3 +47,9 @@ export const priorityIconMap: Record<Todo["priority"] | 'all', IconName> = {
   medium: 'tabler/baseline-density-medium',
   all: 'tabler/baseline-density-medium',
 }
+export const priorityLabelMap: Record<Todo["priority"] | 'all', string> = {
+  high: 'High',
+  low: 'Low',
+  medium: 'Medium',
+  all: 'All',
+}

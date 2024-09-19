@@ -3,23 +3,23 @@ import useGetTodoById from "@/app/(main)/hooks/useGetTodoById";
 import Breadcumbs from "@/app/components/Breadcumbs";
 import { Icon } from "@/app/components/Icons";
 import SubtaskCircularProgress from "@/app/components/SubtaskCircularProgress";
-import { priorityColorMap, priorityIconMap } from "@/misc/user.mixin";
 import { Todo } from "@models/todo";
 import { Card, CardBody, CardHeader } from "@nextui-org/card";
 import { Chip } from "@nextui-org/chip";
 import { Divider } from "@nextui-org/divider";
-import { Select, SelectItem } from "@nextui-org/select";
 import { Skeleton } from "@nextui-org/skeleton";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { notFound } from "next/navigation";
 import useUpdateTodoSubTask from "../../hooks/useUpdateTodoSubtask";
 import { toast } from "sonner";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import {
   exportSubtaskPriorityToChart,
   exportSubtaskStatusToChart,
 } from "./mixin";
 import TodoPieChart from "./component/PieChart";
+import RawData from "./component/RawData";
+import SubTaskList from "./component/SubtaskList";
 
 const statusColorMap: Record<
   Todo["status"],
@@ -31,6 +31,7 @@ const statusColorMap: Record<
 };
 function TodoDetails({ id, workspaceId }: { id: string; workspaceId: string }) {
   const { data, isLoading } = useGetTodoById(workspaceId, id);
+  const swapyContainerRef = useRef<HTMLDivElement>(null);
   const { mutateAsync: update } = useUpdateTodoSubTask(workspaceId, id);
 
   const onUpdateSubTaskStatus = (subTaskId: string, status: Todo["status"]) => {
@@ -46,10 +47,29 @@ function TodoDetails({ id, workspaceId }: { id: string; workspaceId: string }) {
       return subTask;
     });
     const promise = update(updatedSubTasks);
-    toast.promise(promise, {
-      loading: `Updating sub task status...`,
-      success: "Sub task updated",
-      error: "Failed to update sub task",
+
+    promise.catch(() => {
+      toast.error("Failed to update sub task");
+    });
+  };
+
+  const onUpdateSubTaskPriority = (
+    subTaskId: string,
+    priority: Todo["priority"]
+  ) => {
+    const currentSubTasks = data?.subTasks || [];
+    const updatedSubTasks = currentSubTasks.map((subTask) => {
+      if (subTask.id === subTaskId) {
+        return {
+          ...subTask,
+          priority,
+        };
+      }
+      return subTask;
+    });
+    const promise = update(updatedSubTasks);
+    promise.catch(() => {
+      toast.error("Failed to update sub task");
     });
   };
 
@@ -118,12 +138,7 @@ function TodoDetails({ id, workspaceId }: { id: string; workspaceId: string }) {
         ]}
       />
       <div className="px-4 space-y-2">
-        <Card
-          isBlurred
-          shadow="none"
-          radius="sm"
-          className="border border-default-200"
-        >
+        <Card radius="sm" className="border border-default-200 bg-default/20">
           <CardHeader className="uppercase text-3xl text-content1-foreground font-bold tracking-widest">
             {data?.title}
           </CardHeader>
@@ -159,134 +174,77 @@ function TodoDetails({ id, workspaceId }: { id: string; workspaceId: string }) {
                 Sub tasks:&nbsp;
                 <SubtaskCircularProgress item={data} />
               </div>
+              {data?.deletedAt && (
+                <div className="w-full px-4">
+                  <Chip variant="dot" size="sm" color="danger">
+                    Deleted {formatDistanceToNow(data.deletedAt)} ago
+                  </Chip>
+                </div>
+              )}
+            </div>
+            <Divider className="my-8" />
+            <div
+              data-swapy-container
+              id={"swapy-container"}
+              ref={swapyContainerRef}
+              className="grid grid-cols-[repeat(auto-fill,minmax(450px,1fr))] gap-4 [&>span>div]:h-full"
+            >
+              <span data-swapy-slot="1">
+                <Card
+                  shadow="none"
+                  className="border border-default-200"
+                  data-swapy-item="a"
+                >
+                  <CardHeader className="text-content1-foreground font-medium">
+                    Sub Tasks
+                  </CardHeader>
+                  <CardBody>
+                    <SubTaskList
+                      data={data.subTasks ?? []}
+                      onUpdateSubTaskPriority={onUpdateSubTaskPriority}
+                      onUpdateSubTaskStatus={onUpdateSubTaskStatus}
+                    />
+                  </CardBody>
+                </Card>
+              </span>
+              <span data-swapy-slot="2">
+                <Card
+                  className="border border-default-200 bg-default/20"
+                  data-swapy-item="b"
+                >
+                  <CardHeader className="text-content1-foreground font-medium">
+                    Raw Data
+                  </CardHeader>
+                  <CardBody>
+                    <RawData data={JSON.stringify(data, null, 2)} />
+                  </CardBody>
+                </Card>
+              </span>
+
+              <span data-swapy-slot="3">
+                <Card
+                  shadow="none"
+                  className="border border-default-200"
+                  data-swapy-item="c"
+                >
+                  <CardBody>
+                    <div className="flex flex-row max-w-full">
+                      {statusChartData && (
+                        <TodoPieChart label="Status" data={statusChartData} />
+                      )}
+                      {priorityChartData && (
+                        <TodoPieChart
+                          label="Priority"
+                          data={priorityChartData}
+                        />
+                      )}
+                    </div>
+                  </CardBody>
+                </Card>
+              </span>
             </div>
           </CardBody>
         </Card>
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(450px,1fr))] gap-4">
-          <Card
-            isBlurred
-            shadow="none"
-            radius="sm"
-            className="border border-default-200"
-          >
-            <CardHeader className="text-content1-foreground font-medium">
-              Sub Tasks
-            </CardHeader>
-            <CardBody>
-              <div className="space-y-8">
-                {data?.subTasks.length === 0 ? (
-                  <p className="h-32 flex items-center justify-center opacity-20">
-                    No sub tasks yet
-                  </p>
-                ) : (
-                  data?.subTasks.map((subTask) => (
-                    <div
-                      key={subTask.id}
-                      className="flex items-center justify-between gap-2"
-                    >
-                      <div>
-                        <Icon
-                          name={priorityIconMap[subTask.priority]}
-                          color={priorityColorMap[subTask.priority]}
-                        />
-                        <span className="ml-2">{subTask.title}</span>
-                      </div>
-                      <Select
-                        size="sm"
-                        // selectedKeys={[field.value]}
-                        onSelectionChange={(e) =>
-                          onUpdateSubTaskStatus(
-                            subTask.id,
-                            e.anchorKey as Todo["status"]
-                          )
-                        }
-                        placeholder="Select status"
-                        className="w-[200px]"
-                        defaultSelectedKeys={[subTask.status]}
-                        labelPlacement="outside-left"
-                        renderValue={(value) =>
-                          value.map((v) => (
-                            <Chip
-                              key={v.key}
-                              className="capitalize border-none gap-1 text-default-600"
-                              color={
-                                statusColorMap[
-                                  v.key as "todo" | "in-progress" | "done"
-                                ]
-                              }
-                              variant="dot"
-                            >
-                              {v.textValue}
-                            </Chip>
-                          ))
-                        }
-                        variant="bordered"
-                      >
-                        <SelectItem key="todo" textValue="To do">
-                          <Chip
-                            className="capitalize border-none gap-1 text-default-600"
-                            color={statusColorMap["todo"]}
-                            variant="dot"
-                          >
-                            Todo
-                          </Chip>
-                        </SelectItem>
-                        <SelectItem key="in-progress" textValue="In progress">
-                          <Chip
-                            className="capitalize border-none gap-1 text-default-600"
-                            color={statusColorMap["in-progress"]}
-                            variant="dot"
-                          >
-                            In progress
-                          </Chip>
-                        </SelectItem>
-                        <SelectItem key="done" textValue="Done">
-                          <Chip
-                            className="capitalize border-none gap-1 text-default-600"
-                            color={statusColorMap["done"]}
-                            variant="dot"
-                          >
-                            Done
-                          </Chip>
-                        </SelectItem>
-                      </Select>
-                    </div>
-                  ))
-                )}
-              </div>
-            </CardBody>
-          </Card>
-          <Card
-            isBlurred
-            shadow="none"
-            radius="sm"
-            className="border border-default-200"
-          >
-            <CardHeader className="text-content1-foreground font-medium">
-              Raw Data
-            </CardHeader>
-            <CardBody>
-              <pre>{JSON.stringify(data, null, 2)}</pre>
-            </CardBody>
-          </Card>
-          <Card
-            isBlurred
-            shadow="none"
-            radius="sm"
-            className="border border-default"
-          >
-            <CardBody>
-              <div className="flex flex-row max-w-full">
-                {statusChartData && (
-                  <TodoPieChart label="Status" data={statusChartData} />
-                )}
-                {priorityChartData && (
-                  <TodoPieChart label="Priority" data={priorityChartData} />
-                )}
-              </div>
-            </CardBody>
-          </Card>
-        </div>
       </div>
     </div>
   );
