@@ -34,11 +34,7 @@ export function ChartDemo() {
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
       <BarChart accessibilityLayer data={chartData}>
-        <CartesianGrid
-          stroke="var(--nextui-default-50)"
-          strokeDasharray={"5 5"}
-          vertical={false}
-        />
+        <CartesianGrid strokeDasharray={"5 5"} vertical={false} />
         <XAxis
           dataKey="month"
           tickLine={false}

@@ -14,7 +14,12 @@ import { format } from "date-fns";
 import { notFound } from "next/navigation";
 import useUpdateTodoSubTask from "../../hooks/useUpdateTodoSubtask";
 import { toast } from "sonner";
-import { ChartDemo } from "@/app/components/DemoChart";
+import { useMemo } from "react";
+import {
+  exportSubtaskPriorityToChart,
+  exportSubtaskStatusToChart,
+} from "./mixin";
+import TodoPieChart from "./component/PieChart";
 
 const statusColorMap: Record<
   Todo["status"],
@@ -27,11 +32,19 @@ const statusColorMap: Record<
 function TodoDetails({ id, workspaceId }: { id: string; workspaceId: string }) {
   const { data, isLoading } = useGetTodoById(workspaceId, id);
   const { mutateAsync: update } = useUpdateTodoSubTask(workspaceId, id);
+
   const onUpdateSubTaskStatus = (subTaskId: string, status: Todo["status"]) => {
     const currentSubTasks = data?.subTasks || [];
-    const updatedSubTasks = currentSubTasks.map((subTask) =>
-      subTask.id === subTaskId ? { ...subTask, status } : subTask
-    );
+    const updatedSubTasks = currentSubTasks.map((subTask) => {
+      if (subTask.id === subTaskId) {
+        return {
+          ...subTask,
+          status,
+          doneAt: status === "done" ? new Date() : undefined,
+        };
+      }
+      return subTask;
+    });
     const promise = update(updatedSubTasks);
     toast.promise(promise, {
       loading: `Updating sub task status...`,
@@ -39,6 +52,16 @@ function TodoDetails({ id, workspaceId }: { id: string; workspaceId: string }) {
       error: "Failed to update sub task",
     });
   };
+
+  const statusChartData = useMemo(
+    () => data && exportSubtaskStatusToChart(data),
+    [data]
+  );
+  const priorityChartData = useMemo(
+    () => data && exportSubtaskPriorityToChart(data),
+    [data]
+  );
+
   if (isLoading)
     return (
       <div className="pt-2 max-h-screen min-w-[300px] overflow-auto space-y-4 relative">
@@ -246,7 +269,23 @@ function TodoDetails({ id, workspaceId }: { id: string; workspaceId: string }) {
               <pre>{JSON.stringify(data, null, 2)}</pre>
             </CardBody>
           </Card>
-          <ChartDemo />
+          <Card
+            isBlurred
+            shadow="none"
+            radius="sm"
+            className="border border-default"
+          >
+            <CardBody>
+              <div className="flex flex-row max-w-full">
+                {statusChartData && (
+                  <TodoPieChart label="Status" data={statusChartData} />
+                )}
+                {priorityChartData && (
+                  <TodoPieChart label="Priority" data={priorityChartData} />
+                )}
+              </div>
+            </CardBody>
+          </Card>
         </div>
       </div>
     </div>
