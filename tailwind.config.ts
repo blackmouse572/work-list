@@ -12,10 +12,6 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      colors: {
-        background: 'var(--background)',
-        foreground: 'var(--foreground)',
-      },
       fontFamily: {
         sans: ['var(--font-geist-sans)'],
         mono: ['var(--font-geist-mono)'],
@@ -23,6 +19,22 @@ const config: Config = {
     },
   },
   darkMode: 'class',
-  plugins: [nextui(), animate, typography],
+  plugins: [nextui({
+    addCommonColors: true,
+    themes: {
+      light: {
+        colors: {
+          background: "#FFFFFF", // or DEFAULT
+          foreground: "#121212", // or 50 to 900 DEFAULT
+        },
+      },
+      dark: {
+        colors: {
+          background: "#121212", // or DEFAULT
+          foreground: "#FFFFFF", // or 50 to 900 DEFAULT
+        },
+      },
+    },
+  }), animate, typography],
 };
 export default config;

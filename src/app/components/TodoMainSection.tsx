@@ -76,8 +76,8 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
   };
 
   const onCreate = () => {
-    setSelectedKeys(new Set());
     setOpenCreate(true);
+    setSelectedKeys(new Set());
   };
 
   const [openEdit, setOpenEdit] = React.useState(false);

@@ -234,6 +234,21 @@ class TodoService {
   private getTodosWorkspaceKey(workspaceId: string) {
     return `todos-${workspaceId}`;
   }
+
+  async clearTodos(workspaceId: string) {
+    const storageKey = this.getTodosWorkspaceKey(workspaceId);
+    localStorage.removeItem(storageKey);
+  }
+
+  async addMultipleTodos(workspaceId: string, todos: Todo[]) {
+    const storageKey = this.getTodosWorkspaceKey(workspaceId);
+    const currentTodos = this.getTodos(workspaceId);
+    const newTodos = todos.map((todo) => {
+      return { ...todo, id: `T-${currentTodos.length + 1}`, createdAt: new Date(), updatedAt: new Date() };
+    });
+    localStorage.setItem(storageKey, JSON.stringify([...currentTodos, ...newTodos]));
+    return newTodos;
+  }
 }
 const todoService = new TodoService();
 export default todoService;

@@ -21,9 +21,9 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   const workspaceId =
     cookies().get("workspaceId")?.value ?? DEFAULT_WORKSPACE_ID;
   return (
-    <div className="min-h-screen flex flex-col pl-2">
-      <main className="flex flex-1 gap-3 divide-x-2 divide-divider">
-        <div className="flex flex-col py-3.5">
+    <div className="min-h-screen flex flex-col pl-0 sm:pl-2">
+      <main className="flex flex-1 gap-3 sm:divide-x-2 sm:divide-divider">
+        <div className="sm:flex flex-col py-3.5 hidden">
           <AsideNav className="flex-1" workspaceId={workspaceId} />
           <ThemeSwitcher />
         </div>

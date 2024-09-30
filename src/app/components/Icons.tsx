@@ -42,7 +42,7 @@ export function Icon({
   size = "font",
   className,
   title,
-  color,
+  color = "default",
   children,
   ...props
 }: SVGProps<SVGSVGElement> & {

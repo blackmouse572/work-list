@@ -20,14 +20,14 @@ import GlobalCommand from "./GlobalCommand";
 type AsideNavProps = React.HTMLAttributes<HTMLElement> & {
   workspaceId?: string;
 };
-type MenuItem = {
+export type MenuItem = {
   key?: string;
   label: string;
   icon: IconName;
   href: string;
   items?: MenuItem[];
 };
-const MENU_ITEMS: MenuItem[] = [
+export const MENU_ITEMS: MenuItem[] = [
   {
     icon: "tabler/layout-grid-outline",
     label: "Task",
@@ -44,7 +44,7 @@ const MENU_ITEMS: MenuItem[] = [
     href: "/settings",
   },
 ];
-const AUTHOR_MENU_ITEMS: MenuItem[] = [
+export const AUTHOR_MENU_ITEMS: MenuItem[] = [
   {
     icon: "tabler/chevron-right-outline",
     label: "Contact",
@@ -63,6 +63,9 @@ function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
 
   const { data, isLoading } = useGetWorkspaces();
   const path = usePathname();
+  const activeItem =
+    [...MENU_ITEMS, ...AUTHOR_MENU_ITEMS].find((item) => item.href === path) ||
+    MENU_ITEMS[0];
 
   const onSelectionChanges = (e: SharedSelection) => {
     const workspace = data?.find((w) => w.id === e.anchorKey);
@@ -70,8 +73,6 @@ function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
     setSelectedWorkspace(workspace);
     workspaceService.selectWorkspace(workspace.id);
   };
-  const activeItem =
-    MENU_ITEMS.find((item) => item.href === path) || MENU_ITEMS[0];
   const renderItem = (item: MenuItem) => (
     <Link key={item.href} href={item.href} className="w-full">
       <Button
@@ -97,10 +98,7 @@ function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
     setSelectedWorkspace(data?.find((w) => w.id === workspaceId));
   }, [data, workspaceId]);
   return (
-    <aside
-      className={cn(" space-y-8", isShrink ? "w-16" : "w-64", className)}
-      {...props}
-    >
+    <aside className={cn("space-y-8", className)} {...props}>
       <div className="flex items-center justify-between gap-3">
         {!isShrink && (
           <div className="flex-1 flex items-center">

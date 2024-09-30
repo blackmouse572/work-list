@@ -18,6 +18,7 @@ export type IconName =
 	| "tabler/clock-2-outline"
 	| "tabler/dashboard-filled"
 	| "tabler/dashboard-outline"
+	| "tabler/download-outline"
 	| "tabler/empty"
 	| "tabler/file-export-outline"
 	| "tabler/file-filled"
@@ -45,6 +46,7 @@ export type IconName =
 	| "tabler/tags-outline"
 	| "tabler/trash-filled"
 	| "tabler/trash-outline"
+	| "tabler/upload-outline"
 	| "tabler/user-filled"
 	| "tabler/users-group-outline"
 	| "tabler/users-outline";
