@@ -26,7 +26,7 @@ import { Icon } from "./Icons";
 
 type ToDoTableProps = {
   workspaceId: string;
-  onCreateTask: () => void;
+  onCreateTask?: () => void;
   items?: Todo[];
   isLoading: boolean;
 };

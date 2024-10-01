@@ -22,13 +22,16 @@ function EmptyToDoTable({ onCreateTask }: EmptyToDoTableProps) {
           You don&apos;t have any task yet. Click the button below to create a
           new one
         </p>
-        <Button
-          color="primary"
-          onClick={onCreateTask}
-          startContent={<Icon name="tabler/plus-outline" />}
-        >
-          Create Task
-        </Button>
+        {onCreateTask && (
+          <Button
+            color="primary"
+            size="sm"
+            onClick={onCreateTask}
+            startContent={<Icon name="tabler/plus-outline" />}
+          >
+            Create Task
+          </Button>
+        )}
       </div>
     </div>
   );

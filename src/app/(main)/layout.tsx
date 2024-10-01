@@ -1,6 +1,5 @@
 import { DEFAULT_WORKSPACE_ID } from "@/app/(main)/todo/constant";
 import AsideNav from "@/app/components/AsideNav";
-import { ThemeSwitcher } from "@/app/components/ThemeSwitcher";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 export const metadata: Metadata = {
@@ -25,7 +24,6 @@ function MainLayout({ children }: { children: React.ReactNode }) {
       <main className="flex flex-1 gap-3 sm:divide-x-2 sm:divide-divider">
         <div className="sm:flex flex-col py-3.5 hidden">
           <AsideNav className="flex-1" workspaceId={workspaceId} />
-          <ThemeSwitcher />
         </div>
         <div className="flex-1 bg-content1">{children}</div>
       </main>

@@ -15,11 +15,7 @@ function Account() {
         description="Your account is free and secure."
       >
         <span className="aspect-square h-12 flex items-center justify-center bg-content2 rounded-full opacity-70 hover:opacity-100 transition-opacity relative">
-          <Icon
-            name="tabler/circle-check-filled"
-            color="secondary"
-            className="w-5 h-5"
-          />
+          <Icon name="tabler/shield-check-filled" color="secondary" size="lg" />
         </span>
       </FeatureCard>
       <Divider />

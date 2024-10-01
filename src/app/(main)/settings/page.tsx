@@ -6,6 +6,7 @@ import ExportButton from "./components/ExportButton";
 import ImportButton from "./components/ImportButton";
 import { DEFAULT_WORKSPACE_ID } from "../todo/constant";
 import { cookies } from "next/headers";
+import DeleteButton from "./components/DeleteButton";
 
 export const metadata: Metadata = {
   title: "Setting",
@@ -16,7 +17,7 @@ function SettingPage() {
   const workspaceId =
     cookieStore.get("workspaceId")?.value || DEFAULT_WORKSPACE_ID;
   return (
-    <div className="pt-2 overflow-auto space-y-8 relative container max-w-2xl mx-auto px-4">
+    <div className="pt-2 overflow-auto space-y-2 relative container max-w-2xl mx-auto px-4">
       <FeatureCard
         title="Exports data"
         description="Export and store your data in a secure place."
@@ -42,6 +43,18 @@ function SettingPage() {
       >
         <Feedback />
       </FeatureCard>
+
+      <Divider />
+      <div className="space-y-3 pt-5">
+        <h3 className="text-lg font-semibold text-danger-500">Danger Zone</h3>
+        <FeatureCard
+          title="Delete all data"
+          description="Wipe all your data of this current workspace."
+          variants="danger"
+        >
+          <DeleteButton workspaceId={workspaceId} />
+        </FeatureCard>
+      </div>
     </div>
   );
 }

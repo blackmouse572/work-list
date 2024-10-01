@@ -1,38 +1,47 @@
-'use client';
-import TableActionToast from '@/app/(main)/components/TableActionToast';
-import ActionToast from '@/app/components/ActionToast';
-import Breadcumbs from '@/app/components/Breadcumbs';
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/app/components/ContextMenu';
-import DoubleConfirm from '@/app/components/DoubleConfirm';
-import { Icon } from '@/app/components/Icons';
-import TodoTable from '@/app/components/TodoTable';
-import { useTableControl } from '@/app/components/useTableControl';
-import { Input } from '@nextui-org/react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useMemo } from 'react';
-import { toast } from 'sonner';
-import useDeleteTodos from '../(main)/hooks/useDeleteTodos';
-import useForceDeleteTodos from '../(main)/hooks/useForceDeleteTodos';
-import useGetDeleteTodo from '../(main)/hooks/useGetDeleteTodo';
-import useRestoreTodos from '../(main)/hooks/useRestoreTodo';
-import FilterTable, { FilterTodoTableSchema } from './FilterTable';
+"use client";
+import TableActionToast from "@/app/(main)/components/TableActionToast";
+import ActionToast from "@/app/components/ActionToast";
+import Breadcumbs from "@/app/components/Breadcumbs";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/app/components/ContextMenu";
+import DoubleConfirm from "@/app/components/DoubleConfirm";
+import { Icon } from "@/app/components/Icons";
+import TodoTable from "@/app/components/TodoTable";
+import { useTableControl } from "@/app/components/useTableControl";
+import { Input } from "@nextui-org/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useMemo } from "react";
+import { toast } from "sonner";
+import useDeleteTodos from "../(main)/hooks/useDeleteTodos";
+import useForceDeleteTodos from "../(main)/hooks/useForceDeleteTodos";
+import useGetDeleteTodo from "../(main)/hooks/useGetDeleteTodo";
+import useRestoreTodos from "../(main)/hooks/useRestoreTodo";
+import FilterTable, { FilterTodoTableSchema } from "./FilterTable";
 
 type TodoMainSectionProps = {
   workspaceId: string;
 };
 function TrashMainSection({ workspaceId }: TodoMainSectionProps) {
-  const { searchValue: filterValue, selectedKeys, setSelectedKeys } = useTableControl();
+  const {
+    searchValue: filterValue,
+    selectedKeys,
+    setSelectedKeys,
+  } = useTableControl();
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
   const router = useRouter();
   const searchParams = useSearchParams();
   const filter = useMemo(() => {
-    const status = searchParams.get('status') ?? 'all';
-    const priority = searchParams.get('priority') ?? 'all';
-    const dueDateStart = searchParams.get('dueDateStart');
-    const dueDateEnd = searchParams.get('dueDateEnd');
-    const search = searchParams.get('search') ?? '';
+    const status = searchParams.get("status") ?? "all";
+    const priority = searchParams.get("priority") ?? "all";
+    const dueDateStart = searchParams.get("dueDateStart");
+    const dueDateEnd = searchParams.get("dueDateEnd");
+    const search = searchParams.get("search") ?? "";
 
     return FilterTodoTableSchema.parse({
       status,
@@ -43,7 +52,7 @@ function TrashMainSection({ workspaceId }: TodoMainSectionProps) {
     });
   }, [searchParams]);
   const isActionToastOpen = useMemo(() => {
-    const isAll = selectedKeys === 'all';
+    const isAll = selectedKeys === "all";
     if (isAll) return true;
 
     return selectedKeys.size > 0;
@@ -53,9 +62,9 @@ function TrashMainSection({ workspaceId }: TodoMainSectionProps) {
 
   const onRefetch = () => {
     toast.promise(refetch, {
-      loading: 'Refreshing data...',
-      success: 'Data refreshed successfully',
-      error: 'Failed to refresh data',
+      loading: "Refreshing data...",
+      success: "Data refreshed successfully",
+      error: "Failed to refresh data",
     });
   };
 
@@ -86,28 +95,28 @@ function TrashMainSection({ workspaceId }: TodoMainSectionProps) {
     setIsDeleteDialogOpen(true);
   };
   const editTodo = useMemo(() => {
-    if (selectedKeys === 'all' || selectedKeys.size !== 1) return undefined;
+    if (selectedKeys === "all" || selectedKeys.size !== 1) return undefined;
     const id = Array.from(selectedKeys)[0];
     return data?.find((todo) => todo.id === id);
   }, [selectedKeys, data]);
   const restoreTodos = () => {
-    if (selectedKeys === 'all') {
+    if (selectedKeys === "all") {
       const ids = data?.map((todo) => todo.id) ?? [];
       const promise = restoreTodo(ids);
 
       toast.promise(promise, {
-        loading: 'Restoring todos...',
-        success: 'Todos restored successfully',
-        error: 'Failed to restore todos',
+        loading: "Restoring todos...",
+        success: "Todos restored successfully",
+        error: "Failed to restore todos",
         action: {
-          children: 'Undo',
-          label: 'Undo',
+          children: "Undo",
+          label: "Undo",
           onClick: () => {
             const promise = deleteTodo(ids);
             toast.promise(promise, {
-              loading: 'Deleting todos...',
-              success: 'Todos deleted successfully',
-              error: 'Failed to delete todos',
+              loading: "Deleting todos...",
+              success: "Todos deleted successfully",
+              error: "Failed to delete todos",
             });
           },
         },
@@ -116,18 +125,18 @@ function TrashMainSection({ workspaceId }: TodoMainSectionProps) {
       const ids = Array.from(selectedKeys).map((id) => id.toString());
       const promise = restoreTodo(ids);
       toast.promise(promise, {
-        loading: 'Restoring todos...',
-        success: 'Todos restored successfully',
-        error: 'Failed to restore todos',
+        loading: "Restoring todos...",
+        success: "Todos restored successfully",
+        error: "Failed to restore todos",
         action: {
-          children: 'Undo',
-          label: 'Undo',
+          children: "Undo",
+          label: "Undo",
           onClick: () => {
             const promise = deleteTodo(ids);
             toast.promise(promise, {
-              loading: 'Deleting todos...',
-              success: 'Todos deleted successfully',
-              error: 'Failed to delete todos',
+              loading: "Deleting todos...",
+              success: "Todos deleted successfully",
+              error: "Failed to delete todos",
             });
           },
         },
@@ -137,15 +146,15 @@ function TrashMainSection({ workspaceId }: TodoMainSectionProps) {
   };
 
   const onHandleConfirm = () => {
-    if (selectedKeys === 'all') {
+    if (selectedKeys === "all") {
       return;
     } else {
       const ids = Array.from(selectedKeys).map((id) => id.toString());
       const promise = forceDeleteTodo(ids);
       toast.promise(promise, {
-        loading: 'Deleting todo...',
+        loading: "Deleting todo...",
         success: (v) => `Deleted ${v.length} todos successfully`,
-        error: 'Failed to delete todo',
+        error: "Failed to delete todo",
       });
       setSelectedKeys(new Set());
       setIsDeleteDialogOpen(false);
@@ -158,13 +167,13 @@ function TrashMainSection({ workspaceId }: TodoMainSectionProps) {
         className="px-4"
         items={[
           {
-            label: 'Home',
-            href: '',
+            label: "Home",
+            href: "",
             disabled: true,
           },
           {
-            label: 'Trash',
-            href: '/trash',
+            label: "Trash",
+            href: "/trash",
           },
         ]}
       />
@@ -174,13 +183,18 @@ function TrashMainSection({ workspaceId }: TodoMainSectionProps) {
             <Input
               isClearable
               classNames={{
-                base: 'w-1/4 sm:max-w-[44%]',
-                inputWrapper: 'border-1',
+                base: "w-1/4 sm:max-w-[44%]",
+                inputWrapper: "border-1",
               }}
               defaultValue={filter.search}
               placeholder="Search by name..."
               size="sm"
-              startContent={<Icon name="tabler/search-outline" className="text-default-300" />}
+              startContent={
+                <Icon
+                  name="tabler/search-outline"
+                  className="text-default-300"
+                />
+              }
               value={filterValue}
               variant="bordered"
               // onClear={() => onSearchChange("")}
@@ -204,15 +218,22 @@ function TrashMainSection({ workspaceId }: TodoMainSectionProps) {
         onConfirm={onHandleConfirm}
       >
         <p className="text-xs">
-          Are you sure you want to completely delete the selected todo? (This action cannot be undone)
+          Are you sure you want to completely delete the selected todo? (This
+          action cannot be undone)
         </p>
       </DoubleConfirm>
       <ContextMenu>
         <ContextMenuTrigger>
-          <TodoTable items={data} workspaceId={workspaceId} isLoading={isLoading} onCreateTask={() => {}} />
+          <TodoTable
+            items={data}
+            workspaceId={workspaceId}
+            isLoading={isLoading}
+          />
         </ContextMenuTrigger>
         <ContextMenuContent>
-          <ContextMenuItem onClick={() => onRefetch()}>Refresh Data</ContextMenuItem>
+          <ContextMenuItem onClick={() => onRefetch()}>
+            Refresh Data
+          </ContextMenuItem>
           {editTodo && (
             <ContextMenuItem
               onClick={() => {
@@ -229,24 +250,24 @@ function TrashMainSection({ workspaceId }: TodoMainSectionProps) {
         size="md"
         actions={[
           {
-            children: 'De-select',
-            variant: 'faded',
+            children: "De-select",
+            variant: "faded",
             onClick: () => setSelectedKeys(new Set()),
-            color: 'secondary',
+            color: "secondary",
             startContent: <Icon name="tabler/circle-x-filled" />,
           },
           {
-            children: 'Delete',
-            variant: 'faded',
+            children: "Delete",
+            variant: "faded",
             onClick: () => onDeleteTodos(),
-            color: 'danger',
+            color: "danger",
             startContent: <Icon name="tabler/trash-outline" />,
           },
           {
-            children: 'Restore',
-            variant: 'faded',
+            children: "Restore",
+            variant: "faded",
             onClick: () => restoreTodos(),
-            color: 'success',
+            color: "success",
             startContent: <Icon name="tabler/recycle" />,
           },
         ]}

@@ -207,6 +207,11 @@ class TodoService {
     console.debug('[DEBUG] TodoService.deleteTodoByIds from workspaceId: ', workspaceId, ' todoId: ', todoIds);
     return todoIds;
   }
+
+  async deleteAllTodos(workspaceId: string) {
+    const storageKey = this.getTodosWorkspaceKey(workspaceId);
+    localStorage.removeItem(storageKey);
+  }
   updateTodoStatus(workspaceId: string, todoId: string, status: Todo['status']) {
     const storageKey = this.getTodosWorkspaceKey(workspaceId);
     const todos = this.getTodos(workspaceId);
