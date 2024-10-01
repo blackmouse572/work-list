@@ -64,8 +64,11 @@ function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
   const { data, isLoading } = useGetWorkspaces();
   const path = usePathname();
   const activeItem =
-    [...MENU_ITEMS, ...AUTHOR_MENU_ITEMS].find((item) => item.href === path) ||
-    MENU_ITEMS[0];
+    [...MENU_ITEMS, ...AUTHOR_MENU_ITEMS].find((item) => {
+      // Create a regular expression that matches the exact path or any subpath
+      const reg = new RegExp(`^${item.href}(/.*)?$`, "g");
+      return reg.test(path);
+    }) || MENU_ITEMS[0];
 
   const onSelectionChanges = (e: SharedSelection) => {
     const workspace = data?.find((w) => w.id === e.anchorKey);
