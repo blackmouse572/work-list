@@ -1,11 +1,13 @@
-"use client";
+'use client';
 
-import LoadingTable from "@/app/components/LoadingTable";
-import { useTableControl } from "@/app/components/useTableControl";
-import { getDueDateColor, getDueDateLabel } from "@/misc/table.mixin";
-import { Todo } from "@models/todo";
+import LoadingTable from '@/app/components/LoadingTable';
+import { useTableControl } from '@/app/components/useTableControl';
+import { getDueDateColor, getDueDateLabel } from '@/misc/table.mixin';
+import { priorityColorMap, priorityIconMap, statusColorMap } from '@/misc/user.mixin';
+import { Todo } from '@models/todo';
 import {
   Chip,
+  cn,
   Table,
   TableBody,
   TableCell,
@@ -14,30 +16,20 @@ import {
   TableHeader,
   TableRow,
   Tooltip,
-} from "@nextui-org/react";
-import React from "react";
-import EmptyToDoTable from "./EmptyTodoTable";
-import {
-  priorityColorMap,
-  priorityIconMap,
-  statusColorMap,
-} from "@/misc/user.mixin";
-import { Icon } from "./Icons";
+} from '@nextui-org/react';
+import React from 'react';
+import EmptyToDoTable from './EmptyTodoTable';
+import { Icon } from './Icons';
 
 type ToDoTableProps = {
   workspaceId: string;
   onCreateTask?: () => void;
   items?: Todo[];
   isLoading: boolean;
+  className?: string;
 };
-function TodoTable({ isLoading, items, onCreateTask }: ToDoTableProps) {
-  const {
-    sortDescriptor,
-    addToSelection,
-    selectedKeys,
-    setSortDescriptor,
-    setSelectedKeys,
-  } = useTableControl();
+function TodoTable({ isLoading, items, className, onCreateTask }: ToDoTableProps) {
+  const { sortDescriptor, addToSelection, selectedKeys, setSortDescriptor, setSelectedKeys } = useTableControl();
   const sortedItems = React.useMemo(() => {
     if (!items) return [];
     return [...items].sort((a, b) => {
@@ -46,7 +38,7 @@ function TodoTable({ isLoading, items, onCreateTask }: ToDoTableProps) {
       if (!first || !second) return 0;
       const cmp = first < second ? -1 : first > second ? 1 : 0;
 
-      return sortDescriptor.direction === "descending" ? -cmp : cmp;
+      return sortDescriptor.direction === 'descending' ? -cmp : cmp;
     });
   }, [sortDescriptor, items]);
   const headerColumns = React.useMemo<
@@ -54,40 +46,35 @@ function TodoTable({ isLoading, items, onCreateTask }: ToDoTableProps) {
       uid: keyof Todo;
       name: string;
       sortable?: boolean;
-      width?: TableColumnProps<Todo>["width"];
-      minWidth?: TableColumnProps<Todo>["minWidth"];
-      maxWidth?: TableColumnProps<Todo>["maxWidth"];
+      width?: TableColumnProps<Todo>['width'];
+      minWidth?: TableColumnProps<Todo>['minWidth'];
+      maxWidth?: TableColumnProps<Todo>['maxWidth'];
     }[]
   >(
     () => [
-      { uid: "id", name: "", sortable: false, width: 100 },
-      { uid: "title", name: "Title", sortable: true },
-      { uid: "status", name: "Status", sortable: true, width: 120 },
-      { uid: "dueDate", name: "Due Date", sortable: true },
-      { uid: "subTasks", name: "Sub Tasks", sortable: false },
-      { uid: "tags", name: "Tags", sortable: false },
+      { uid: 'id', name: '', sortable: false, width: 100 },
+      { uid: 'title', name: 'Title', sortable: true },
+      { uid: 'status', name: 'Status', sortable: true, width: 120 },
+      { uid: 'dueDate', name: 'Due Date', sortable: true },
+      { uid: 'subTasks', name: 'Sub Tasks', sortable: false },
+      { uid: 'tags', name: 'Tags', sortable: false },
     ],
     []
   );
   const renderCell = React.useCallback((item: Todo, columnKey: keyof Todo) => {
     const cellValue = item[columnKey];
     switch (columnKey) {
-      case "id": {
+      case 'id': {
         return (
           <>
-            <Icon
-              name={priorityIconMap[item.priority]}
-              color={priorityColorMap[item.priority]}
-            />
-            <span className="text-default-300 ml-2">
-              [{item.id.toUpperCase()}]
-            </span>
+            <Icon name={priorityIconMap[item.priority]} color={priorityColorMap[item.priority]} />
+            <span className="text-default-300 ml-2">[{item.id.toUpperCase()}]</span>
           </>
         );
       }
-      case "title":
+      case 'title':
         return <span>{item.title}</span>;
-      case "status":
+      case 'status':
         return (
           <Chip
             className="capitalize border-none gap-1 text-default-600"
@@ -98,15 +85,11 @@ function TodoTable({ isLoading, items, onCreateTask }: ToDoTableProps) {
             {item.status}
           </Chip>
         );
-      case "dueDate":
-        return (
-          <span className={`text-${getDueDateColor(item)} font-medium`}>
-            {getDueDateLabel(item)}{" "}
-          </span>
-        );
-      case "subTasks":
+      case 'dueDate':
+        return <span className={`text-${getDueDateColor(item)} font-medium`}>{getDueDateLabel(item)} </span>;
+      case 'subTasks':
         return <span> {item.subTasks?.length} </span>;
-      case "tags":
+      case 'tags':
         // fist 3 tags
         return (
           <div className="flex flex-wrap gap-1">
@@ -177,22 +160,22 @@ function TodoTable({ isLoading, items, onCreateTask }: ToDoTableProps) {
   }, []);
   const classNames = React.useMemo(
     () => ({
-      wrapper: ["max-h-[382px]", "max-w-3xl"],
-      th: ["bg-transparent", "text-default-500", "border-b", "border-divider"],
+      base: cn(['max-h-screen', 'max-w-[100vw]'], className),
+      th: ['bg-transparent', 'text-default-500', 'border-b', 'border-divider'],
       td: [
         // changing the rows border radius
         // first
-        "group-data-[first=true]:first:before:rounded-none",
-        "group-data-[first=true]:last:before:rounded-none",
+        'group-data-[first=true]:first:before:rounded-none',
+        'group-data-[first=true]:last:before:rounded-none',
         // middle
-        "group-data-[middle=true]:before:rounded-none",
+        'group-data-[middle=true]:before:rounded-none',
         // last
-        "group-data-[last=true]:first:before:rounded-none",
-        "group-data-[last=true]:last:before:rounded-none",
-        "text-xs",
+        'group-data-[last=true]:first:before:rounded-none',
+        'group-data-[last=true]:last:before:rounded-none',
+        'text-xs',
       ],
     }),
-    []
+    [className]
   );
 
   return (
@@ -200,11 +183,10 @@ function TodoTable({ isLoading, items, onCreateTask }: ToDoTableProps) {
       isCompact
       removeWrapper
       aria-label="Example table with custom cells, pagination and sorting"
-      //   bottomContent={bot   tomContent}
       bottomContentPlacement="outside"
       checkboxesProps={{
         classNames: {
-          wrapper: "after:bg-foreground after:text-background text-background",
+          wrapper: 'after:bg-foreground after:text-background text-background',
         },
       }}
       isVirtualized
@@ -222,12 +204,7 @@ function TodoTable({ isLoading, items, onCreateTask }: ToDoTableProps) {
     >
       <TableHeader columns={headerColumns}>
         {({ uid, ...column }) => (
-          <TableColumn
-            key={uid}
-            allowsSorting={column.sortable}
-            allowsResizing
-            {...column}
-          >
+          <TableColumn key={uid} allowsSorting={column.sortable} allowsResizing {...column}>
             {column.name}
           </TableColumn>
         )}
@@ -247,9 +224,7 @@ function TodoTable({ isLoading, items, onCreateTask }: ToDoTableProps) {
               }
             }}
           >
-            {(columnKey) => (
-              <TableCell>{renderCell(item, columnKey as keyof Todo)}</TableCell>
-            )}
+            {(columnKey) => <TableCell>{renderCell(item, columnKey as keyof Todo)}</TableCell>}
           </TableRow>
         )}
       </TableBody>

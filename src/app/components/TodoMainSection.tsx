@@ -1,38 +1,29 @@
-"use client";
-import TableActionToast from "@/app/(main)/components/TableActionToast";
-import useAddTodo from "@/app/(main)/hooks/useAddTodo";
-import useDeleteTodo from "@/app/(main)/hooks/useDeleteTodo";
-import useGetTodo from "@/app/(main)/hooks/useGetTodo";
-import ActionToast from "@/app/components/ActionToast";
-import AddTodoPanel, { AddTodoSchema } from "@/app/components/AddTodo";
-import Breadcumbs from "@/app/components/Breadcumbs";
-import useConfirm from "@/app/components/ConfirmDialog";
-import { toast } from "sonner";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "@/app/components/ContextMenu";
-import { Icon } from "@/app/components/Icons";
-import TodoTable from "@/app/components/TodoTable";
-import { useTableControl } from "@/app/components/useTableControl";
-import { Button, Input, Selection } from "@nextui-org/react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import React, { useCallback, useMemo } from "react";
-import useUpdateTodo from "../(main)/hooks/useUpdateTodo";
-import FilterTable, { FilterTodoTableSchema } from "./FilterTable";
-import { debounce } from "lodash";
+'use client';
+import TableActionToast from '@/app/(main)/components/TableActionToast';
+import useAddTodo from '@/app/(main)/hooks/useAddTodo';
+import useDeleteTodo from '@/app/(main)/hooks/useDeleteTodo';
+import useGetTodo from '@/app/(main)/hooks/useGetTodo';
+import ActionToast from '@/app/components/ActionToast';
+import AddTodoPanel, { AddTodoSchema } from '@/app/components/AddTodo';
+import Breadcumbs from '@/app/components/Breadcumbs';
+import useConfirm from '@/app/components/ConfirmDialog';
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/app/components/ContextMenu';
+import { Icon } from '@/app/components/Icons';
+import TodoTable from '@/app/components/TodoTable';
+import { useTableControl } from '@/app/components/useTableControl';
+import { Button, Input, Selection } from '@nextui-org/react';
+import { debounce } from 'lodash';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import React, { useCallback, useMemo } from 'react';
+import { toast } from 'sonner';
+import useUpdateTodo from '../(main)/hooks/useUpdateTodo';
+import FilterTable, { FilterTodoTableSchema } from './FilterTable';
 
 type TodoMainSectionProps = {
   workspaceId: string;
 };
 function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
-  const {
-    selectedKeys,
-    setSearchValue: setFilterValue,
-    setSelectedKeys,
-  } = useTableControl();
+  const { selectedKeys, setSearchValue: setFilterValue, setSelectedKeys } = useTableControl();
   const { confirm } = useConfirm();
 
   const router = useRouter();
@@ -40,11 +31,11 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
   const pathName = usePathname();
 
   const filter = useMemo(() => {
-    const status = searchParams.get("status") ?? "all";
-    const search = searchParams.get("search") ?? "";
-    const priority = searchParams.get("priority") ?? "all";
-    const dueDateStart = searchParams.get("dueDateStart");
-    const dueDateEnd = searchParams.get("dueDateEnd");
+    const status = searchParams.get('status') ?? 'all';
+    const search = searchParams.get('search') ?? '';
+    const priority = searchParams.get('priority') ?? 'all';
+    const dueDateStart = searchParams.get('dueDateStart');
+    const dueDateEnd = searchParams.get('dueDateEnd');
 
     return FilterTodoTableSchema.parse({
       search,
@@ -56,7 +47,7 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
   }, [searchParams]);
 
   const isActionToastOpen = useMemo(() => {
-    const isAll = selectedKeys === "all";
+    const isAll = selectedKeys === 'all';
     if (isAll) return true;
 
     return selectedKeys.size > 0;
@@ -69,9 +60,9 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
 
   const onRefetch = () => {
     toast.promise(refetch, {
-      loading: "Refreshing data...",
-      success: "Data refreshed successfully",
-      error: "Failed to refresh data",
+      loading: 'Refreshing data...',
+      success: 'Data refreshed successfully',
+      error: 'Failed to refresh data',
     });
   };
 
@@ -85,13 +76,13 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
 
   const onDeleteTodos = async (selection: Selection) => {
     const isActionConfirmed = await confirm({
-      title: "Delete Todo",
-      description: "Are you sure you want to delete the selected todo?",
-      confirmButton: { children: "Delete", color: "danger" },
-      cancelButton: { children: "Cancel" },
+      title: 'Delete Todo',
+      description: 'Are you sure you want to delete the selected todo?',
+      confirmButton: { children: 'Delete', color: 'danger' },
+      cancelButton: { children: 'Cancel' },
     });
     if (!isActionConfirmed) return;
-    if (selection === "all") {
+    if (selection === 'all') {
       return;
     } else {
       const ids = Array.from(selection);
@@ -101,15 +92,15 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
         return v;
       });
       toast.promise(promise, {
-        loading: "Deleting todo...",
+        loading: 'Deleting todo...',
         success: (v) => `Deleted ${v.length} todos successfully`,
-        error: "Failed to delete todo",
+        error: 'Failed to delete todo',
       });
     }
   };
 
   const editTodo = useMemo(() => {
-    if (selectedKeys === "all" || selectedKeys.size !== 1) return undefined;
+    if (selectedKeys === 'all' || selectedKeys.size !== 1) return undefined;
     const id = Array.from(selectedKeys)[0];
     return data?.find((todo) => todo.id === id);
   }, [selectedKeys, data]);
@@ -119,18 +110,15 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
       const search = value.trim();
       const url = new URLSearchParams(searchParams);
       if (search) {
-        url.set("search", search);
+        url.set('search', search);
       } else {
-        url.delete("search");
+        url.delete('search');
       }
-      router.push(pathName + "?" + url.toString());
+      router.push(pathName + '?' + url.toString());
     },
     [pathName, router, searchParams]
   );
-  const debounceSetSearchToSearchParam = useMemo(
-    () => debounce(setSearchToSearchParam, 500),
-    [setSearchToSearchParam]
-  );
+  const debounceSetSearchToSearchParam = useMemo(() => debounce(setSearchToSearchParam, 500), [setSearchToSearchParam]);
 
   const onSearchChange = (value: string) => {
     setFilterValue(value);
@@ -149,41 +137,36 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
   };
 
   return (
-    <div className="pt-2 h-screen min-w-[300px] overflow-auto space-y-4 relative">
+    <div className="pt-2 h-screen overflow-auto space-y-4 relative">
       <Breadcumbs
         className="px-4"
         items={[
           {
-            label: "Home",
-            href: "",
+            label: 'Home',
+            href: '',
             disabled: true,
           },
           {
-            label: "Todo",
-            href: "/",
+            label: 'Todo',
+            href: '/',
           },
         ]}
       />
-      <nav className="sticky top-0 z-[9] px-4 space-y-3">
+      <nav className="sticky top-0 z-[9] px-2 lg:px-4 space-y-3">
         <div className="flex flex-col gap-4 bg-default-100 bg-opacity-50 border border-default-200 rounded-medium p-1 backdrop-blur-lg">
           <div className="flex justify-between gap-3 items-end">
             <Input
               isClearable
               classNames={{
-                base: "w-1/4 sm:max-w-[44%]",
-                inputWrapper: "border-1",
+                base: 'w-full sm:max-w-[44%] md:max-w-[25%]',
+                inputWrapper: 'border-1',
               }}
               placeholder="Search by name..."
               size="sm"
-              startContent={
-                <Icon
-                  name="tabler/search-outline"
-                  className="text-default-300"
-                />
-              }
+              startContent={<Icon name="tabler/search-outline" className="text-default-300" />}
               variant="bordered"
               defaultValue={filter.search}
-              onClear={() => onSearchChange("")}
+              onClear={() => onSearchChange('')}
               onValueChange={onSearchChange}
             />
             <div className="flex gap-3 flex-1 justify-end items-center">
@@ -210,6 +193,7 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
       <ContextMenu>
         <ContextMenuTrigger>
           <TodoTable
+            className="overflow-x-auto lg:overflow-visible"
             items={data}
             workspaceId={workspaceId}
             isLoading={isLoading}
@@ -217,10 +201,7 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
           />
         </ContextMenuTrigger>
         <ContextMenuContent>
-          <ContextMenuItem
-            onClick={() => onRefetch()}
-            endContent={<Icon name="tabler/progress-outline" size="sm" />}
-          >
+          <ContextMenuItem onClick={() => onRefetch()} endContent={<Icon name="tabler/progress-outline" size="sm" />}>
             Refresh Data
           </ContextMenuItem>
           {editTodo && (
@@ -255,26 +236,26 @@ function TodoMainSection({ workspaceId }: TodoMainSectionProps) {
 
       <ActionToast
         actions={[
-          selectedKeys !== "all" && selectedKeys.size > 1
+          selectedKeys !== 'all' && selectedKeys.size > 1
             ? {
-                children: "De-select",
-                variant: "faded",
+                children: 'De-select',
+                variant: 'faded',
                 onClick: () => setSelectedKeys(new Set()),
-                color: "secondary",
+                color: 'secondary',
                 startContent: <Icon name="tabler/circle-x-filled" />,
               }
             : {
-                children: "Edit",
-                variant: "faded",
+                children: 'Edit',
+                variant: 'faded',
                 onClick: () => setOpenEdit(true),
-                color: "primary",
+                color: 'primary',
                 startContent: <Icon name="tabler/pencil-outline" />,
               },
           {
-            children: "Delete",
-            variant: "faded",
+            children: 'Delete',
+            variant: 'faded',
             onClick: () => onDeleteTodos(selectedKeys),
-            color: "danger",
+            color: 'danger',
             startContent: <Icon name="tabler/trash-outline" />,
           },
         ]}

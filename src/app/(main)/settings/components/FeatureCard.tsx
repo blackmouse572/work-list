@@ -1,23 +1,20 @@
-import { cn, colorVariants, tv, VariantProps } from "@nextui-org/theme";
+import { cn, colorVariants, tv, VariantProps } from '@nextui-org/theme';
 
 const FeatureCardVariants = tv({
   slots: {
-    base: ["flex flex-row w-full", "text-content2-foreground", "p-4"],
-    header: ["flex flex-col gap-2 flex-1"],
+    base: ['flex flex-col gap-2 sm:gap-0 sm:flex-row w-full', 'text-content2-foreground', 'p-4'],
+    header: ['flex flex-col gap-2 flex-1'],
   },
   variants: {
     variants: {
       default: {},
       danger: {
-        base: [
-          colorVariants.light.danger,
-          "rounded-medium border bg-danger/20 border-danger",
-        ],
+        base: [colorVariants.light.danger, 'rounded-medium border bg-danger/20 border-danger'],
       },
     },
   },
   defaultVariants: {
-    variants: "default",
+    variants: 'default',
   },
 });
 
@@ -37,12 +34,7 @@ function FeatureCard(props: FeatureCardProps) {
         <h1 className="text-large font-bold">{title}</h1>
         <p className="text-default-500 text-sm max-w-[80%]">{description}</p>
       </div>
-      <div
-        className={cn(
-          "max-w-[200px] flex justify-center items-center",
-          containerClassName
-        )}
-      >
+      <div className={cn('sm:max-w-[200px] flex justify-end sm:justify-center items-center', containerClassName)}>
         {children}
       </div>
     </div>

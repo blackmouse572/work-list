@@ -1,4 +1,11 @@
-import React, { useCallback, useMemo } from "react";
+import useGlobalCommand from '@/app/components/global-command';
+import { Input } from '@nextui-org/input';
+import { Kbd } from '@nextui-org/kbd';
+import { useRouter } from 'next/navigation';
+import React, { useCallback, useMemo } from 'react';
+import { toast } from 'sonner';
+import { saveWorkspaceId } from '../../(main)/actions/workspace.action';
+import useGetWorkspaces from '../../(main)/hooks/useGetWorkspace';
 import {
   CommandDialog,
   CommandEmpty,
@@ -8,57 +15,50 @@ import {
   CommandList,
   CommandSeparator,
   CommandShortcut,
-} from "./Command";
-import { Input } from "@nextui-org/input";
-import { Kbd } from "@nextui-org/kbd";
-import useGetWorkspaces from "../(main)/hooks/useGetWorkspace";
-import { Icon } from "./Icons";
-import { useRouter } from "next/navigation";
-import { saveWorkspaceId } from "../(main)/actions/workspace.action";
-import { toast } from "sonner";
+} from '../Command';
+import { Icon } from '../Icons';
 
 function GlobalCommand({ workspaceId }: { workspaceId: string }) {
-  const [open, setOpen] = React.useState(false);
-  const { data: workspaces, isLoading: isLoadingWorkspaces } =
-    useGetWorkspaces();
+  const { isOpen, setOpen, toggle } = useGlobalCommand();
+  const { data: workspaces, isLoading: isLoadingWorkspaces } = useGetWorkspaces();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const router = useRouter();
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
       // Ctrl + K
-      if (e.ctrlKey && e.key === "k") {
+      if (e.ctrlKey && e.key === 'k') {
         e.preventDefault();
-        setOpen((prev) => !prev);
+        toggle();
       }
     };
 
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, []);
+    document.addEventListener('keydown', down);
+    return () => document.removeEventListener('keydown', down);
+  }, [setOpen, toggle]);
   React.useEffect(() => {
     if (!open) return;
     const handleShortcuts = (e: KeyboardEvent) => {
       if (!e.ctrlKey) return;
       e.preventDefault();
-      if (e.ctrlKey && e.key === "a") {
-        router.push("/about");
+      if (e.ctrlKey && e.key === 'a') {
+        router.push('/about');
       }
-      if (e.ctrlKey && e.key === "s") {
-        router.push("/settings");
+      if (e.ctrlKey && e.key === 's') {
+        router.push('/settings');
       }
-      if (e.ctrlKey && e.key === "h") {
-        router.push("/");
+      if (e.ctrlKey && e.key === 'h') {
+        router.push('/');
       }
     };
-    document.addEventListener("keydown", handleShortcuts);
+    document.addEventListener('keydown', handleShortcuts);
 
     return () => {
-      document.removeEventListener("keydown", handleShortcuts);
+      document.removeEventListener('keydown', handleShortcuts);
     };
-  }, [open, router]);
+  }, [router]);
   const onSelect = useCallback(
     async (e: Record<string, A>) => {
-      console.log("e", e);
+      console.log('e', e);
       if (e.href) {
         router.push(e.href);
         setOpen(false);
@@ -68,7 +68,7 @@ function GlobalCommand({ workspaceId }: { workspaceId: string }) {
         toast.success(`Workspace changed to ${e.name}`);
       }
     },
-    [router]
+    [router, setOpen]
   );
 
   const renderBody = useMemo(() => {
@@ -81,19 +81,15 @@ function GlobalCommand({ workspaceId }: { workspaceId: string }) {
     }
 
     return (
-      <CommandGroup heading={"Workspaces"}>
+      <CommandGroup heading={'Workspaces'}>
         {workspaces.map((workspace) => {
           return (
             <CommandItem
               key={workspace.id}
               value={workspace.name}
-              onSelect={() =>
-                onSelect({ workspaceId: workspace.id, name: workspace.name })
-              }
+              onSelect={() => onSelect({ workspaceId: workspace.id, name: workspace.name })}
               endContent={
-                workspace.id === workspaceId ? (
-                  <Icon name="tabler/star-filled" color="secondary" />
-                ) : undefined
+                workspace.id === workspaceId ? <Icon name="tabler/star-filled" color="secondary" /> : undefined
               }
             >
               {workspace.name}
@@ -107,34 +103,34 @@ function GlobalCommand({ workspaceId }: { workspaceId: string }) {
   const commandItems = useMemo(
     () => [
       {
-        href: "/about",
+        href: '/about',
         startContent: <Icon name="tabler/help-circle-filled" />,
-        endContent: <CommandShortcut keys={["command"]}>A</CommandShortcut>,
-        children: "Help",
+        endContent: <CommandShortcut keys={['command']}>A</CommandShortcut>,
+        children: 'Help',
       },
       {
-        href: "/settings",
-        startContent: <Icon name={"tabler/settings-filled"} />,
-        endContent: <CommandShortcut keys={["command"]}>S</CommandShortcut>,
-        children: "Settings",
+        href: '/settings',
+        startContent: <Icon name={'tabler/settings-filled'} />,
+        endContent: <CommandShortcut keys={['command']}>S</CommandShortcut>,
+        children: 'Settings',
       },
       {
-        href: "/trash",
-        startContent: <Icon name={"tabler/trash-filled"} />,
-        children: "Trash",
+        href: '/trash',
+        startContent: <Icon name={'tabler/trash-filled'} />,
+        children: 'Trash',
       },
       {
-        href: "/",
-        startContent: <Icon name={"tabler/layout-grid-filled"} />,
-        endContent: <CommandShortcut keys={["command"]}>H</CommandShortcut>,
-        children: "Tasks",
+        href: '/',
+        startContent: <Icon name={'tabler/layout-grid-filled'} />,
+        endContent: <CommandShortcut keys={['command']}>H</CommandShortcut>,
+        children: 'Tasks',
       },
     ],
     []
   );
   const renderCommand = useMemo(() => {
     return (
-      <CommandGroup heading={"Commands"}>
+      <CommandGroup heading={'Commands'}>
         {commandItems.map((item) => {
           return (
             <CommandItem
@@ -157,7 +153,7 @@ function GlobalCommand({ workspaceId }: { workspaceId: string }) {
       <Input
         ref={inputRef}
         endContent={
-          <Kbd className="text-xs" keys={["command"]}>
+          <Kbd className="text-xs" keys={['command']}>
             K
           </Kbd>
         }
@@ -168,11 +164,11 @@ function GlobalCommand({ workspaceId }: { workspaceId: string }) {
         placeholder="Search"
         size="sm"
         classNames={{
-          mainWrapper: "cursor-pointer",
+          mainWrapper: 'cursor-pointer',
         }}
         className="cursor-pointer"
       />
-      <CommandDialog isOpen={open} onOpenChange={setOpen} onSelect={onSelect}>
+      <CommandDialog isOpen={isOpen} onOpenChange={setOpen} onSelect={onSelect}>
         <CommandInput autoFocus placeholder="Type a command or search..." />
         <CommandList>
           {renderBody}

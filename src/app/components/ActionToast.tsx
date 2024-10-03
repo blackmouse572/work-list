@@ -1,12 +1,13 @@
-import { Button, ButtonProps } from "@nextui-org/button";
-import { cn } from "@nextui-org/theme";
-import { AnimatePresence, motion, Variant } from "framer-motion";
+import { Button, ButtonProps } from '@nextui-org/button';
+import { Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@nextui-org/dropdown';
+import { cn } from '@nextui-org/theme';
+import { AnimatePresence, motion, Variant } from 'framer-motion';
 type ActionToastProps = React.HTMLAttributes<HTMLElement> & {
   isOpen: boolean;
   onOpenChange?: (open: boolean) => void;
   message: React.ReactNode;
-  actions: ButtonProps[];
-  size?: "sm" | "md" | "lg";
+  actions: (Omit<ButtonProps, 'onClick'> & { onClick?: () => void })[];
+  size?: 'sm' | 'md' | 'lg';
 };
 const variables: Record<string, Variant> = {
   initial: { opacity: 0, y: 100 },
@@ -35,25 +36,52 @@ function ActionToast({ isOpen, message, size, actions }: ActionToastProps) {
             animate="animate"
             exit="exit"
             className={cn(
-              "fixed overflow-hidden bottom-4 z-[10] text-default-900 rounded-full px-4 py-2 shadow-md inset-x-0 max-w-sm mx-auto bg-default-100 bg-opacity-50 border border-default-200 backdrop-blur-sm",
-              size === "sm" && "max-w-sm",
-              size === "md" && "max-w-md",
-              size === "lg" && "max-w-lg"
+              'fixed overflow-hidden bottom-4 z-[10] text-default-900 rounded-full px-4 py-2 shadow-md inset-x-0 max-w-sm mx-auto bg-default-100 bg-opacity-50 border border-default-200 backdrop-blur-sm',
+              size === 'sm' && 'max-w-sm',
+              size === 'md' && 'max-w-md',
+              size === 'lg' && 'max-w-lg'
             )}
           >
             <div className="flex items-center justify-between">
               {message}
-              <div className="flex gap-2">
+              <div className="gap-2 hidden sm:flex">
                 {actions.map((action, index) => (
                   <Button
                     key={index}
                     size="sm"
                     {...action}
-                    onClick={(e) => {
-                      action.onClick?.(e);
+                    onClick={() => {
+                      action.onClick?.();
                     }}
                   />
                 ))}
+              </div>
+              <div className="block sm:hidden">
+                <Dropdown>
+                  <DropdownTrigger>
+                    <Button variant="bordered" size="sm">
+                      Open Menu
+                    </Button>
+                  </DropdownTrigger>
+                  <DropdownMenu
+                    onAction={(k) => {
+                      const action = actions[k as A];
+                      action.onClick?.();
+                    }}
+                  >
+                    {actions.map((action, index) => (
+                      <DropdownItem
+                        key={index}
+                        endContent={action.endContent}
+                        startContent={action.startContent}
+                        className={action.className}
+                        color={action.color}
+                      >
+                        {action.children}
+                      </DropdownItem>
+                    ))}
+                  </DropdownMenu>
+                </Dropdown>
               </div>
             </div>
           </motion.div>

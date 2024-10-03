@@ -1,21 +1,15 @@
-"use client";
-import workspaceService from "@/app/(main)/actions/workspace.local.action";
-import useGetWorkspaces from "@/app/(main)/hooks/useGetWorkspace";
-import { Icon, IconName } from "@/app/components/Icons";
-import NewWorkspace from "@/app/components/NewWorkspace";
-import { Workspace } from "@models/workspace";
-import { Avatar } from "@nextui-org/avatar";
-import {
-  Button,
-  cn,
-  Select,
-  SelectItem,
-  SharedSelection,
-} from "@nextui-org/react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import React, { useEffect } from "react";
-import GlobalCommand from "./GlobalCommand";
+'use client';
+import workspaceService from '@/app/(main)/actions/workspace.local.action';
+import useGetWorkspaces from '@/app/(main)/hooks/useGetWorkspace';
+import { Icon, IconName } from '@/app/components/Icons';
+import NewWorkspace from '@/app/components/NewWorkspace';
+import { Workspace } from '@models/workspace';
+import { Avatar } from '@nextui-org/avatar';
+import { Button, cn, Select, SelectItem, SharedSelection } from '@nextui-org/react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import React, { useEffect } from 'react';
+import GlobalCommand from './global-command/GlobalCommand';
 
 type AsideNavProps = React.HTMLAttributes<HTMLElement> & {
   workspaceId?: string;
@@ -29,31 +23,31 @@ export type MenuItem = {
 };
 export const MENU_ITEMS: MenuItem[] = [
   {
-    icon: "tabler/layout-grid-outline",
-    label: "Task",
-    href: "/",
+    icon: 'tabler/layout-grid-outline',
+    label: 'Task',
+    href: '/',
   },
   {
-    icon: "tabler/trash-outline",
-    label: "Trash",
-    href: "/trash",
+    icon: 'tabler/trash-outline',
+    label: 'Trash',
+    href: '/trash',
   },
   {
-    icon: "tabler/settings-2-outline",
-    label: "Settings",
-    href: "/settings",
+    icon: 'tabler/settings-2-outline',
+    label: 'Settings',
+    href: '/settings',
   },
 ];
 export const AUTHOR_MENU_ITEMS: MenuItem[] = [
   {
-    icon: "tabler/chevron-right-outline",
-    label: "Contact",
-    href: "https://portfolio-five-theta-76.vercel.app/",
+    icon: 'tabler/chevron-right-outline',
+    label: 'Contact',
+    href: 'https://portfolio-five-theta-76.vercel.app/',
   },
   {
-    icon: "tabler/users-outline",
-    label: "About",
-    href: "/about",
+    icon: 'tabler/users-outline',
+    label: 'About',
+    href: '/about',
   },
 ];
 function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
@@ -66,13 +60,13 @@ function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
   const activeItem =
     [...MENU_ITEMS, ...AUTHOR_MENU_ITEMS].find((item) => {
       // Create a regular expression that matches the exact path or any subpath
-      const reg = new RegExp(`^${item.href}(/.*)?$`, "g");
+      const reg = new RegExp(`^${item.href}(/.*)?$`, 'g');
       return reg.test(path);
     }) || MENU_ITEMS[0];
 
   const onSelectionChanges = (e: SharedSelection) => {
     const workspace = data?.find((w) => w.id === e.anchorKey);
-    if (!workspace || workspace.id === "added") return;
+    if (!workspace || workspace.id === 'added') return;
     setSelectedWorkspace(workspace);
     workspaceService.selectWorkspace(workspace.id);
   };
@@ -82,17 +76,13 @@ function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
         href={item.href}
         disableRipple
         startContent={<Icon name={item.icon} />}
-        color={activeItem.href === item.href ? "primary" : "default"}
-        variant={activeItem.href === item.href ? "flat" : "light"}
+        color={activeItem.href === item.href ? 'primary' : 'default'}
+        variant={activeItem.href === item.href ? 'flat' : 'light'}
         data-selected={activeItem.href === item.href}
         isIconOnly={isShrink}
         className="w-full"
       >
-        <span
-          className={cn(isShrink ? "hidden" : "block", "w-full text-start")}
-        >
-          {item.label}
-        </span>
+        <span className={cn(isShrink ? 'hidden' : 'block', 'w-full text-start')}>{item.label}</span>
       </Button>
     </Link>
   );
@@ -101,7 +91,7 @@ function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
     setSelectedWorkspace(data?.find((w) => w.id === workspaceId));
   }, [data, workspaceId]);
   return (
-    <aside className={cn("space-y-8", className)} {...props}>
+    <aside className={cn('space-y-8', className)} {...props}>
       <div className="flex items-center justify-between gap-3">
         {!isShrink && (
           <div className="flex-1 flex items-center">
@@ -126,8 +116,8 @@ function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
                 )) as any
               }
               <SelectItem
-                key={"added"}
-                textValue={"New Workspace"}
+                key={'added'}
+                textValue={'New Workspace'}
                 onClick={() => {
                   setIsAddWorkspace(true);
                 }}
@@ -140,12 +130,7 @@ function AsideNav({ className, workspaceId, ...props }: AsideNavProps) {
             </Select>
           </div>
         )}
-        <Avatar
-          className="aspect-square"
-          src="/avatars/extension_icon_solid.png"
-          name="John Doe"
-          size="sm"
-        />
+        <Avatar className="aspect-square" src="/avatars/extension_icon_solid.png" name="John Doe" size="sm" />
       </div>
       <NewWorkspace isOpen={isAddWorkspace} onOpenChange={setIsAddWorkspace} />
       <GlobalCommand workspaceId={workspaceId!} />
